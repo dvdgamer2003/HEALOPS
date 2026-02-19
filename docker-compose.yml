@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+  # ─── FastAPI Backend + LangGraph Agent ───
+  agent:
+    build:
+      context: ./agent
+      dockerfile: Dockerfile
+    container_name: cicd-healing-agent
+    ports:
+      - "8000:8000"
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - MONGODB_URI=${MONGODB_URI}
+    volumes:
+      - /tmp/agent-runs:/tmp # Persist cloned repos
+    restart: unless-stopped
+    networks:
+      - healing-net
+
+  # ─── React Frontend ───
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: cicd-healing-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_URL=http://agent:8000
+    depends_on:
+      - agent
+    networks:
+      - healing-net
+
+networks:
+  healing-net:
+    driver: bridge
