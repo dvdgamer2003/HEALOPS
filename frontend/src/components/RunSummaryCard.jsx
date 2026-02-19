@@ -115,9 +115,9 @@ export default function RunSummaryCard() {
                         label: 'Branch',
                         value: results.branch,
                         mono: true,
-                        // Always construct URL from repo_url + branch so it works for any repo
+                        // Link to commits view so user can see exactly what the AI committed
                         link: results.branch
-                            ? `${(results.repo_url || '').replace(/\.git$/, '').replace(/\/$/, '')}/tree/${results.branch}`
+                            ? `${(results.repo_url || '').replace(/\.git$/, '').replace(/\/$/, '')}/commits/${results.branch}`
                             : results.branch_url,
                     },
                 ].map(({ label, value, mono, truncate, link }) => (
