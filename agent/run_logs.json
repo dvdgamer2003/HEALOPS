@@ -1,0 +1,12 @@
+[
+  "✓ Cloned https://github.com/YASH-DHADGE/DEVDEMO",
+  "✓ Created branch: AGENTTEST_DEMO_AI_Fix",
+  "✓ Dependencies installed (requirements.txt)",
+  "Detected framework: pytest",
+  "Found 1 test file(s)",
+  "✗ Tests FAILED (iteration 1) — exit class: TESTS_FAILED",
+  "Identified 1 fixable failure(s)",
+  "Iteration 1: 0 new fix(es), 0 unfixable",
+  "✗ Push failed: Cmd('git') failed due to: exit code(128)\n  cmdline: git push --porcelain -- origin AGENTTEST_DEMO_AI_Fix\n  stderr: 'fatal: unable to access 'https://g",
+  "⏭ Skipped CI/CD monitoring (no new push)"
+]

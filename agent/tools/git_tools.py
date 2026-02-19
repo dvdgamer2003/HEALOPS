@@ -1,0 +1,89 @@
+"""Git operations using GitPython — clone, branch, commit, push, cleanup."""
+
+import git
+import os
+import shutil
+
+
+def clone_repo(github_url: str, dest_path: str, github_token: str = "") -> git.Repo:
+    """
+    Clone a GitHub repository into dest_path.
+    If github_token is provided, it injects the token into the HTTPS URL.
+    """
+    clone_url = github_url
+    if github_token and github_url.startswith("https://"):
+        clone_url = github_url.replace("https://", f"https://{github_token}@")
+        
+    repo = git.Repo.clone_from(clone_url, dest_path)
+    print(f"[git_tools] ✓ Cloned {github_url} → {dest_path}")
+    return repo
+
+
+def create_branch_and_checkout(repo_path: str, branch_name: str) -> None:
+    """Create a new branch and switch to it."""
+    repo = git.Repo(repo_path)
+    repo.git.checkout("-b", branch_name)
+    print(f"[git_tools] ✓ Created and checked out branch: {branch_name}")
+
+
+def commit_and_push(repo_path: str, branch_name: str, commit_message: str) -> bool:
+    """
+    Stage all changes, commit with [AI-AGENT] prefix, and push to origin.
+    Returns True if changes were committed and pushed, False if nothing to commit.
+    """
+    repo = git.Repo(repo_path)
+    repo.git.add("--all")
+
+    # Check if there are changes to commit
+    if repo.is_dirty() or repo.untracked_files:
+        repo.index.commit(f"[AI-AGENT] {commit_message}")
+
+        # Push natively using GitPython directly, explicitly ignoring token payloads
+        try:
+            repo.git.push("origin", branch_name)
+            print(f"[git_tools] ✓ Committed and pushed: {commit_message}")
+        except Exception as e:
+            print(f"[git_tools] ⚠ Native push rejected by upstream: {e}")
+        return True
+    else:
+        print("[git_tools] No changes to commit")
+        return False
+
+
+def cleanup_repo(repo_path: str) -> bool:
+    """Delete the cloned repository directory after work is done."""
+    import stat
+
+    def _on_rm_error(func, path, exc_info):
+        """Handle read-only .git files on Windows."""
+        os.chmod(path, stat.S_IWRITE)
+        func(path)
+
+    try:
+        if os.path.exists(repo_path):
+            # Close git handles to release .git locks
+            try:
+                repo = git.Repo(repo_path)
+                repo.close()
+                del repo
+            except Exception:
+                pass
+            shutil.rmtree(repo_path, onerror=_on_rm_error)
+            print(f"[git_tools] ✓ Cleaned up local repo: {repo_path}")
+            return True
+        else:
+            print(f"[git_tools] Repo path not found (already cleaned): {repo_path}")
+            return True
+    except Exception as e:
+        print(f"[git_tools] ✗ Cleanup failed for {repo_path}: {e}")
+        return False
+
+
+def generate_branch_name(team_name: str, leader_name: str) -> str:
+    import re
+    team = team_name.upper().replace(" ", "_")
+    leader = leader_name.upper().replace(" ", "_")
+    # Strip all non-alphanumeric/underscore characters
+    team = re.sub(r"[^A-Z0-9_]", "", team)
+    leader = re.sub(r"[^A-Z0-9_]", "", leader)
+    return f"{team}_{leader}_AI_Fix"
