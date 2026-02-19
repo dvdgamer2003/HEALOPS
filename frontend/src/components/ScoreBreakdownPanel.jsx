@@ -58,12 +58,22 @@ export default function ScoreBreakdownPanel() {
     const grade = finalScore >= 110 ? 'S' : finalScore >= 100 ? 'A' : finalScore >= 80 ? 'B' : finalScore >= 60 ? 'C' : 'F';
     const gradeColor = finalScore >= 100 ? 'text-emerald-400' : finalScore >= 80 ? 'text-brand-400' : 'text-red-400';
 
-    // Data for horizontal bar chart
+    // Max possible = base + speed_bonus (no penalty scenario)
+    const maxPossible = base + Math.max(speed_bonus, 10);
+
+    // Only show penalty in chart if it's actually non-zero
     const barData = [
         { name: 'Base Score', value: base, fill: '#6366f1' },
         { name: 'Speed Bonus', value: speed_bonus, fill: '#10b981' },
-        { name: 'Efficiency Penalty', value: efficiency_penalty, fill: efficiency_penalty < 0 ? '#ef4444' : '#6b7280' },
+        ...(efficiency_penalty < 0 ? [{ name: 'Penalty', value: efficiency_penalty, fill: '#ef4444' }] : []),
         { name: 'Final Score', value: finalScore, fill: ringColor },
+    ];
+
+    // Compact breakdown list — hide penalty if 0
+    const breakdownRows = [
+        { label: 'Base', val: base, color: 'bg-brand-500', text: 'text-brand-400' },
+        { label: 'Speed Bonus', val: `+${speed_bonus}`, color: 'bg-emerald-500', text: 'text-emerald-400' },
+        ...(efficiency_penalty < 0 ? [{ label: 'Penalty', val: efficiency_penalty, color: 'bg-red-500', text: 'text-red-400' }] : []),
     ];
 
     return (
@@ -81,18 +91,14 @@ export default function ScoreBreakdownPanel() {
             {/* Ring + Grade */}
             <div className="flex items-center gap-5 mb-5">
                 <div className="relative flex-shrink-0">
-                    <RingProgress value={finalScore} max={130} color={ringColor} />
+                    <RingProgress value={finalScore} max={maxPossible} color={ringColor} />
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
                         <span className={`text-xl font-extrabold ${gradeColor}`}>{finalScore}</span>
                         <span className={`text-xs font-bold ${gradeColor} opacity-70`}>Grade {grade}</span>
                     </div>
                 </div>
                 <div className="flex-1 space-y-2">
-                    {[
-                        { label: 'Base', val: base, color: 'bg-brand-500', text: 'text-brand-400' },
-                        { label: 'Speed Bonus', val: `+${speed_bonus}`, color: 'bg-emerald-500', text: 'text-emerald-400' },
-                        { label: 'Penalty', val: efficiency_penalty, color: 'bg-red-500', text: 'text-red-400' },
-                    ].map(({ label, val, color, text }) => (
+                    {breakdownRows.map(({ label, val, color, text }) => (
                         <div key={label} className="flex items-center justify-between text-xs">
                             <div className="flex items-center gap-1.5">
                                 <div className={`w-2 h-2 rounded-full ${color}`} />
@@ -107,7 +113,7 @@ export default function ScoreBreakdownPanel() {
             {/* Bar Chart */}
             <div className="mb-4">
                 <p className="text-xs text-gray-500 mb-2 font-medium">Score Components</p>
-                <div className="h-[140px]">
+                <div className="h-[${barData.length * 38}px]" style={{ height: `${barData.length * 38}px` }}>
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={barData} layout="vertical" barCategoryGap="25%">
                             <XAxis type="number" hide domain={[0, 140]} />

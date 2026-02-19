@@ -111,7 +111,15 @@ export default function RunSummaryCard() {
                     { label: 'Repository', value: results.repo_url, mono: true, truncate: true },
                     { label: 'Team', value: results.team_name },
                     { label: 'Leader', value: results.leader_name },
-                    { label: 'Branch', value: results.branch, mono: true, link: results.branch_url },
+                    {
+                        label: 'Branch',
+                        value: results.branch,
+                        mono: true,
+                        // Always construct URL from repo_url + branch so it works for any repo
+                        link: results.branch
+                            ? `${(results.repo_url || '').replace(/\.git$/, '').replace(/\/$/, '')}/tree/${results.branch}`
+                            : results.branch_url,
+                    },
                 ].map(({ label, value, mono, truncate, link }) => (
                     <div key={label} className="flex items-center justify-between py-1.5 border-b border-white/[0.03] last:border-0">
                         <span className="text-xs text-gray-500">{label}</span>
