@@ -1,17 +1,20 @@
+import {
+    RadialBarChart, RadialBar, ResponsiveContainer,
+    BarChart, Bar, XAxis, YAxis, Tooltip, Cell,
+    Legend
+} from 'recharts';
 import useAgentStore from '../store/useAgentStore';
 
-// Circular progress ring
-function RingProgress({ value, max = 130, size = 100, stroke = 8, color = '#6366f1' }) {
+// Circular progress ring (SVG)
+function RingProgress({ value, max = 130, size = 96, stroke = 7, color = '#6366f1' }) {
     const r = (size - stroke) / 2;
     const circ = 2 * Math.PI * r;
     const pct = Math.min(Math.max(value / max, 0), 1);
     const dash = circ * pct;
-
     return (
         <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="rotate-[-90deg]">
             <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth={stroke} />
-            <circle
-                cx={size / 2} cy={size / 2} r={r} fill="none"
+            <circle cx={size / 2} cy={size / 2} r={r} fill="none"
                 stroke={color} strokeWidth={stroke}
                 strokeDasharray={`${dash} ${circ}`}
                 strokeLinecap="round"
@@ -20,6 +23,18 @@ function RingProgress({ value, max = 130, size = 100, stroke = 8, color = '#6366
         </svg>
     );
 }
+
+// Custom tooltip for bar chart
+const BarTooltip = ({ active, payload }) => {
+    if (!active || !payload?.length) return null;
+    const { name, value } = payload[0].payload;
+    return (
+        <div className="bg-surface-900 border border-white/10 rounded-xl px-3 py-2 text-xs shadow-xl">
+            <p className="text-gray-400">{name}</p>
+            <p className="text-white font-bold text-sm">{value > 0 ? '+' : ''}{value}</p>
+        </div>
+    );
+};
 
 export default function ScoreBreakdownPanel() {
     const { results } = useAgentStore();
@@ -39,16 +54,17 @@ export default function ScoreBreakdownPanel() {
 
     const { base, speed_bonus, efficiency_penalty, final: finalScore } = results.score;
 
-    const rows = [
-        { label: 'Base Score', value: base, sign: '', color: 'bg-brand-500', textColor: 'text-brand-400' },
-        { label: 'Speed Bonus', value: speed_bonus, sign: '+', color: 'bg-emerald-500', textColor: 'text-emerald-400' },
-        { label: 'Efficiency Penalty', value: efficiency_penalty, sign: '', color: 'bg-red-500', textColor: 'text-red-400' },
-    ];
-
-    // Color the ring based on final score
     const ringColor = finalScore >= 100 ? '#10b981' : finalScore >= 70 ? '#6366f1' : '#ef4444';
     const grade = finalScore >= 110 ? 'S' : finalScore >= 100 ? 'A' : finalScore >= 80 ? 'B' : finalScore >= 60 ? 'C' : 'F';
     const gradeColor = finalScore >= 100 ? 'text-emerald-400' : finalScore >= 80 ? 'text-brand-400' : 'text-red-400';
+
+    // Data for horizontal bar chart
+    const barData = [
+        { name: 'Base Score', value: base, fill: '#6366f1' },
+        { name: 'Speed Bonus', value: speed_bonus, fill: '#10b981' },
+        { name: 'Efficiency Penalty', value: efficiency_penalty, fill: efficiency_penalty < 0 ? '#ef4444' : '#6b7280' },
+        { name: 'Final Score', value: finalScore, fill: ringColor },
+    ];
 
     return (
         <section className="glass-card p-6 animate-slide-up">
@@ -62,40 +78,63 @@ export default function ScoreBreakdownPanel() {
                 <h2 className="text-xl font-bold text-white">Score Breakdown</h2>
             </div>
 
-            {/* Ring + Score */}
+            {/* Ring + Grade */}
             <div className="flex items-center gap-5 mb-5">
                 <div className="relative flex-shrink-0">
-                    <RingProgress value={finalScore} max={130} size={96} stroke={7} color={ringColor} />
+                    <RingProgress value={finalScore} max={130} color={ringColor} />
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className={`text-2xl font-extrabold ${gradeColor}`}>{finalScore}</span>
+                        <span className={`text-xl font-extrabold ${gradeColor}`}>{finalScore}</span>
                         <span className={`text-xs font-bold ${gradeColor} opacity-70`}>Grade {grade}</span>
                     </div>
                 </div>
-                <div className="flex-1 space-y-2.5">
-                    {rows.map(({ label, value, sign, color, textColor }) => (
-                        <div key={label} className="flex items-center gap-2">
-                            <div className={`flex-shrink-0 w-2 h-2 rounded-full ${color}`} />
-                            <div className="flex-1">
-                                <div className="flex justify-between items-center mb-0.5">
-                                    <span className="text-xs text-gray-400">{label}</span>
-                                    <span className={`text-xs font-bold font-mono ${textColor}`}>{sign}{value}</span>
-                                </div>
-                                <div className="h-1 rounded-full bg-white/[0.05] overflow-hidden">
-                                    <div
-                                        className={`h-full rounded-full ${color}`}
-                                        style={{ width: `${Math.min(Math.abs(value) / 130 * 100, 100)}%`, transition: 'width 0.8s ease' }}
-                                    />
-                                </div>
+                <div className="flex-1 space-y-2">
+                    {[
+                        { label: 'Base', val: base, color: 'bg-brand-500', text: 'text-brand-400' },
+                        { label: 'Speed Bonus', val: `+${speed_bonus}`, color: 'bg-emerald-500', text: 'text-emerald-400' },
+                        { label: 'Penalty', val: efficiency_penalty, color: 'bg-red-500', text: 'text-red-400' },
+                    ].map(({ label, val, color, text }) => (
+                        <div key={label} className="flex items-center justify-between text-xs">
+                            <div className="flex items-center gap-1.5">
+                                <div className={`w-2 h-2 rounded-full ${color}`} />
+                                <span className="text-gray-400">{label}</span>
                             </div>
+                            <span className={`font-semibold font-mono ${text}`}>{val}</span>
                         </div>
                     ))}
                 </div>
             </div>
 
-            {/* Final score large display */}
-            <div className={`text-center py-3 rounded-xl border ${finalScore >= 100 ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-red-500/5 border-red-500/20'}`}>
-                <p className="text-xs text-gray-500 mb-0.5">Final Score</p>
-                <p className={`text-3xl font-extrabold ${gradeColor}`}>{finalScore} <span className="text-sm font-medium text-gray-500">/ 130</span></p>
+            {/* Bar Chart */}
+            <div className="mb-4">
+                <p className="text-xs text-gray-500 mb-2 font-medium">Score Components</p>
+                <div className="h-[140px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={barData} layout="vertical" barCategoryGap="25%">
+                            <XAxis type="number" hide domain={[0, 140]} />
+                            <YAxis
+                                type="category"
+                                dataKey="name"
+                                tick={{ fill: '#6b7280', fontSize: 10 }}
+                                width={100}
+                            />
+                            <Tooltip content={<BarTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
+                            <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                                {barData.map((entry, index) => (
+                                    <Cell key={index} fill={entry.fill} fillOpacity={entry.name === 'Final Score' ? 1 : 0.8} />
+                                ))}
+                            </Bar>
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
+            </div>
+
+            {/* Final Score Badge */}
+            <div className={`text-center py-2.5 rounded-xl border ${finalScore >= 100 ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-red-500/5 border-red-500/20'}`}>
+                <p className={`text-2xl font-extrabold ${gradeColor}`}>
+                    {finalScore}
+                    <span className="text-sm font-medium text-gray-500 ml-1">/ 130</span>
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5">Final Score</p>
             </div>
         </section>
     );
