@@ -1,34 +1,66 @@
 import { useEffect, useRef } from 'react';
 import useAgentStore from '../store/useAgentStore';
 
-function classifyLog(log) {
-    if (log.startsWith('✓')) return 'success';
-    if (log.startsWith('✗')) return 'error';
-    if (log.startsWith('⏭') || log.startsWith('⚠')) return 'warn';
-    if (log.startsWith('CI/CD')) return 'cicd';
-    if (log.toLowerCase().includes('iteration')) return 'iteration';
-    if (log.toLowerCase().includes('test') && log.toLowerCase().includes('pass')) return 'success';
-    if (log.toLowerCase().includes('test') && log.toLowerCase().includes('fail')) return 'error';
-    return 'info';
+// Simplify raw agent log messages into human-readable English
+function simplifyLog(log) {
+    if (!log) return log;
+
+    // Remove emoji prefixes and extra whitespace
+    const cleaned = log.replace(/^[✓✗⏭⚠🤖]\s*/, '').trim();
+
+    // Pattern simplifications
+    const rules = [
+        [/^Cloned\s+https?:\/\/github\.com\/(.+)/i, (_, r) => `📦 Cloned repository: ${r}`],
+        [/^Created branch:\s*(.+)/i, (_, b) => `🌿 Working on branch: ${b}`],
+        [/^Detected.*?test\s*framework[:\s]*(\w+)/i, (_, f) => `🔍 Test framework: ${f}`],
+        [/^Running.*?tests?\s*\(iteration\s*(\d+)\)/i, (_, n) => `🧪 Running tests (attempt ${n})`],
+        [/^Tests?\s*PASSED/i, () => `✅ All tests passed!`],
+        [/^Tests?\s*FAILED/i, () => `❌ Tests failed — attempting fix`],
+        [/^Identified\s+(\d+)\s+fixable/i, (_, n) => `🔍 Found ${n} bug${n > 1 ? 's' : ''} to fix`],
+        [/^Iteration\s+(\d+):\s+(\d+)\s+new\s+fix/i, (_, i, n) => `🛠️ Attempt ${i}: Generated ${n} fix${n > 1 ? 'es' : ''}`],
+        [/^Committed.*?(\d+)\s*fix.*?\(iteration\s*(\d+)\)/i, (_, n, i) => `📤 Committed ${n} fix${n > 1 ? 'es' : ''} (attempt ${i})`],
+        [/^CI\/CD\s+iteration\s+(\d+):\s*(\w+)/i, (_, i, s) => `⚡ CI/CD check ${i}: ${s}`],
+        [/^Retrying.*?iteration\s*(\d+)/i, (_, n) => `🔄 Retrying (attempt ${n} of 5)`],
+        [/^Skipped\s+(\d+)\s+unfixable/i, (_, n) => `⏭ Skipped ${n} config file${n > 1 ? 's' : ''}`],
+        [/^Native push bypassed/i, () => `⚠️ Push skipped — local commit succeeded`],
+        [/^Config\s*\/\s*collection\s*fault/i, () => `⚠️ Config issue detected — skipping code fix`],
+        [/^No\s*tests?\s*found/i, () => `ℹ️ No tests found in repository`],
+        [/^No\s*workflow.*found/i, () => `ℹ️ No GitHub Actions detected`],
+        [/^Error:/i, (m) => `❌ ${cleaned}`],
+    ];
+
+    for (const [pattern, fn] of rules) {
+        const match = cleaned.match(pattern);
+        if (match) return fn(...match);
+    }
+
+    // Return a cleaned-up original if no rule matched
+    return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
 }
 
 const LOG_STYLES = {
-    success: 'text-emerald-400',
-    error: 'text-red-400',
-    warn: 'text-amber-400',
-    cicd: 'text-sky-400',
-    iteration: 'text-violet-400',
-    info: 'text-gray-300',
+    '📦': 'text-sky-400',
+    '🌿': 'text-teal-400',
+    '🔍': 'text-violet-400',
+    '🧪': 'text-blue-400',
+    '✅': 'text-emerald-400',
+    '❌': 'text-red-400',
+    '🛠️': 'text-orange-400',
+    '📤': 'text-brand-400',
+    '⚡': 'text-yellow-400',
+    '🔄': 'text-purple-400',
+    '⏭': 'text-amber-400',
+    '⚠️': 'text-amber-400',
+    'ℹ️': 'text-gray-400',
+    default: 'text-gray-300',
 };
 
-const LOG_ICONS = {
-    success: '✓',
-    error: '✗',
-    warn: '⚠',
-    cicd: '⚡',
-    iteration: '🔄',
-    info: '›',
-};
+function getStyle(simplified) {
+    for (const [emoji, cls] of Object.entries(LOG_STYLES)) {
+        if (emoji !== 'default' && simplified.startsWith(emoji)) return cls;
+    }
+    return LOG_STYLES.default;
+}
 
 export default function ActivityLog() {
     const { logs, status, isPolling } = useAgentStore();
@@ -45,9 +77,9 @@ export default function ActivityLog() {
 
     if (!hasLogs && !isActive) return null;
 
-    // Count success vs errors for summary
-    const successCount = logs.filter(l => classifyLog(l) === 'success').length;
-    const errorCount = logs.filter(l => classifyLog(l) === 'error').length;
+    const simplified = logs.map(simplifyLog);
+    const successCount = simplified.filter(l => l.startsWith('✅')).length;
+    const errorCount = simplified.filter(l => l.startsWith('❌')).length;
 
     return (
         <section className="glass-card p-6 animate-fade-in">
@@ -55,12 +87,12 @@ export default function ActivityLog() {
             <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
                     <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
                 </div>
                 <div className="flex-1">
                     <h2 className="text-lg font-bold text-white">Activity Log</h2>
-                    <p className="text-xs text-gray-500">Real-time agent progress</p>
+                    <p className="text-xs text-gray-500">Live agent steps</p>
                 </div>
                 {isActive ? (
                     <span className="inline-flex items-center gap-1.5 text-xs font-medium text-brand-400 bg-brand-500/10 px-3 py-1 rounded-full border border-brand-500/20">
@@ -68,7 +100,7 @@ export default function ActivityLog() {
                         Live
                     </span>
                 ) : hasLogs && (
-                    <div className="flex gap-2 text-xs">
+                    <div className="flex gap-1.5 text-xs">
                         <span className="text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-2 py-0.5">{successCount} ✓</span>
                         {errorCount > 0 && <span className="text-red-400 bg-red-500/10 border border-red-500/20 rounded-full px-2 py-0.5">{errorCount} ✗</span>}
                     </div>
@@ -78,11 +110,10 @@ export default function ActivityLog() {
             {/* Log Feed */}
             <div
                 ref={scrollRef}
-                className="max-h-[300px] overflow-y-auto rounded-xl bg-surface-950/60 border border-white/[0.04] p-3 space-y-1 scroll-smooth"
+                className="max-h-[280px] overflow-y-auto rounded-xl bg-surface-950/60 border border-white/[0.04] p-3 space-y-1.5 scroll-smooth"
                 style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.08) transparent' }}
                 role="log"
                 aria-live="polite"
-                aria-label="Agent activity log"
             >
                 {!hasLogs && isActive && (
                     <div className="flex items-center gap-2 text-gray-500 text-sm py-6 justify-center">
@@ -90,20 +121,18 @@ export default function ActivityLog() {
                             <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25" />
                             <path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="opacity-75" />
                         </svg>
-                        Waiting for agent output...
+                        Starting agent...
                     </div>
                 )}
-                {logs.map((log, i) => {
-                    const type = classifyLog(log);
-                    const isLatest = i === logs.length - 1 && isActive;
+                {simplified.map((log, i) => {
+                    const isLatest = i === simplified.length - 1 && isActive;
                     return (
                         <div
                             key={i}
-                            className={`flex items-start gap-2 text-xs font-mono leading-relaxed transition-all duration-200 ${isLatest ? 'animate-fade-in' : ''} hover:bg-white/[0.02] rounded-lg px-1 py-0.5`}
+                            className={`flex items-start gap-2 text-sm leading-relaxed px-1 py-0.5 rounded-lg hover:bg-white/[0.02] transition-all ${isLatest ? 'animate-fade-in' : ''}`}
                         >
-                            <span className="text-gray-700 text-xs w-5 text-right shrink-0 mt-px select-none">{String(i + 1).padStart(2, '0')}</span>
-                            <span className={`shrink-0 mt-px ${LOG_STYLES[type]}`}>{LOG_ICONS[type]}</span>
-                            <span className={LOG_STYLES[type]}>{log}</span>
+                            <span className="text-gray-600 font-mono text-[10px] w-4 mt-1 shrink-0 select-none">{i + 1}</span>
+                            <span className={`${getStyle(log)} font-medium`}>{log}</span>
                         </div>
                     );
                 })}
@@ -112,10 +141,10 @@ export default function ActivityLog() {
             {/* Footer */}
             {hasLogs && (
                 <div className="mt-3 flex items-center justify-between text-xs text-gray-600">
-                    <span>{logs.length} event{logs.length !== 1 ? 's' : ''} logged</span>
+                    <span>{logs.length} step{logs.length !== 1 ? 's' : ''}</span>
                     {!isActive && status && (
                         <span className={status === 'PASSED' ? 'text-emerald-500 font-medium' : 'text-red-400 font-medium'}>
-                            {status === 'PASSED' ? '✓ Pipeline complete' : '✗ Pipeline finished with errors'}
+                            {status === 'PASSED' ? '✓ Done — all tests pass' : '✗ Done with issues'}
                         </span>
                     )}
                 </div>
