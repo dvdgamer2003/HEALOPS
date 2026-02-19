@@ -80,7 +80,7 @@ export default function App() {
 
                 {/* Footer */}
                 <footer className="mt-16 text-center text-xs text-gray-600" role="contentinfo">
-                    Autonomous CI/CD Healing Agent · Built with React, LangGraph & Google Gemini
+                    HEALOPS · Autonomous CI/CD Healing Agent · Built with React, LangGraph & Mistral AI
                 </footer>
             </div>
         </div>
