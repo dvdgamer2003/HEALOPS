@@ -36,7 +36,7 @@ export default function App() {
                         </span>
                     </h1>
                     <p className="mt-4 text-lg text-gray-400 max-w-2xl mx-auto leading-relaxed">
-                        Autonomous AI agent that clones your repo, detects failures, generates fixes with Google Gemini, and monitors CI/CD until all tests pass.
+                        Autonomous AI agent that clones your repo, detects failures, generates fixes with <span className="text-brand-400 font-semibold">Mistral AI</span>, and verifies until all tests pass.
                     </p>
                 </header>
 
