@@ -3123,3 +3123,87 @@ class LeaveApplicationForm(forms.ModelForm):
 
 
 Output the FIXED region now (raw code only, same number of surrounding lines where unchanged):
+
+=== GENERATE_TARGETED_FIX PROMPT ===
+You are an expert software engineer. Fix ONLY the bug in the code region below.
+
+RULES:
+- Fix ONLY the specific issue described. Do NOT refactor or change unrelated code.
+- Preserve exact formatting, indentation, comments, and blank lines.
+- Return ONLY the fixed region (raw code only, no ``` fences, no explanations).
+- The region starts at line 1 of the original file.
+
+FIX HINT: Change return statement to return a*b
+
+Bug Type: LOGIC
+Failing Line: 2
+
+Error Output (truncated):
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\divye\Downloads\DevOps-AI-main (1)\DevOps-AI-main\agent\venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\tmp\2236c765-a584-49ac-9d82-08e05c63f91f\repo
+plugins: anyio-4.12.1, langsmith-0.7.5
+collecting ... collected 1 item
+
+test_calculator.py::test_multiply FAILED                                 [100%]
+
+================================== FAILURES ===================================
+________________________________ test_multiply ________________________________
+test_calculator.py:4: in test_multiply
+    assert multiply(3,4) == 12
+E   assert 7 == 12
+E    +  where 7 = multiply(3, 4)
+=========================== short test summary info ===========================
+FAILED test_calculator.py::test_multiply - assert 7 == 12
+============================== 1 failed in 0.12s ==============================
+\n
+
+Code Region (lines 1-2):
+def multiply(a,b):
+  return a+b
+
+
+Output the FIXED region now (raw code only, same number of surrounding lines where unchanged):
+
+=== GENERATE_TARGETED_FIX PROMPT ===
+You are an expert software engineer. Fix ONLY the bug in the code region below.
+
+RULES:
+- Fix ONLY the specific issue described. Do NOT refactor or change unrelated code.
+- Preserve exact formatting, indentation, comments, and blank lines.
+- Return ONLY the fixed region (raw code only, no ``` fences, no explanations).
+- The region starts at line 1 of the original file.
+
+FIX HINT: Change return statement to return a*b
+
+Bug Type: LOGIC
+Failing Line: 2
+
+Error Output (truncated):
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\divye\Downloads\DevOps-AI-main (1)\DevOps-AI-main\agent\venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\tmp\94b7dde6-0916-4b24-a0ba-36f707bb8cc5\repo
+plugins: anyio-4.12.1, langsmith-0.7.5
+collecting ... collected 1 item
+
+test_calculator.py::test_multiply FAILED                                 [100%]
+
+================================== FAILURES ===================================
+________________________________ test_multiply ________________________________
+test_calculator.py:4: in test_multiply
+    assert multiply(3,4) == 12
+E   assert 7 == 12
+E    +  where 7 = multiply(3, 4)
+=========================== short test summary info ===========================
+FAILED test_calculator.py::test_multiply - assert 7 == 12
+============================== 1 failed in 0.08s ==============================
+\n
+
+Code Region (lines 1-2):
+def multiply(a,b):
+  return a+b
+
+
+Output the FIXED region now (raw code only, same number of surrounding lines where unchanged):
