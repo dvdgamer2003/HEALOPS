@@ -50,23 +50,35 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-ALLOWED_ORIGINS = [
-    "https://healops.vercel.app",
-    "https://healops-e63x.onrender.com",
-    "http://localhost:3000",
-    "http://localhost:5173",
-    # Allow all Vercel preview URLs for this project
-    "https://*.vercel.app",
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
-    allow_origin_regex=r"https://healops.*\.vercel\.app",
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_origins=["*"],
+    allow_methods=["*"],
     allow_headers=["*"],
-    allow_credentials=False,
 )
+
+
+# ─── Global error handler — ensures CORS headers are always present ──────────
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request, exc):
+    return JSONResponse(
+        status_code=500,
+        content={"detail": str(exc)},
+        headers={"Access-Control-Allow-Origin": "*"},
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc):
+    return JSONResponse(
+        status_code=422,
+        content={"detail": str(exc)},
+        headers={"Access-Control-Allow-Origin": "*"},
+    )
 
 
 # ─── Request Schemas ───
