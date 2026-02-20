@@ -1165,3 +1165,12 @@ def multiply(a,b):
 def multiply(a,b):
   return a*b
 
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a+b
+
+
+--- TARGET: /tmp/30468d51-42ed-4697-b122-ac0e0b0c1141/repo/calculator.py ---
+def multiply(a, b):
+  return a * b

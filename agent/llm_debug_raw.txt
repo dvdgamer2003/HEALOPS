@@ -68,3 +68,9 @@
 [RAW LLM RESPONSE - TARGETED]: 'def multiply(a,b):\n  return a*b'
 
 [RAW LLM RESPONSE - TARGETED]: 'def multiply(a,b):\n  return a*b'
+
+[RAW LLM RESPONSE - TARGETED]: 'def multiply(a,b):\n  return a+b'
+
+[RAW LLM RESPONSE - TARGETED]: 'def multiply(a,b):\n  return a+b'
+
+[RAW LLM RESPONSE - FIX]: 'def multiply(a, b):\n  return a * b'

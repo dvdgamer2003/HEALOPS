@@ -3333,3 +3333,179 @@ def multiply(a,b):
 
 
 Output the FIXED region now (raw code only, same number of surrounding lines where unchanged):
+
+=== GENERATE_TARGETED_FIX PROMPT ===
+You are an expert software engineer. Fix ONLY the bug in the code region below.
+
+RULES:
+- Fix ONLY the specific issue described. Do NOT refactor or change unrelated code.
+- Preserve exact formatting, indentation, comments, and blank lines.
+- Return ONLY the fixed region (raw code only, no ``` fences, no explanations).
+- The region starts at line 1 of the original file.
+
+FIX HINT: remove the semicolon after the function definition
+
+Bug Type: SYNTAX
+Failing Line: 1
+
+Error Output (truncated):
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\divye\Downloads\DevOps-AI-main (1)\DevOps-AI-main\agent\venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\tmp\30468d51-42ed-4697-b122-ac0e0b0c1141\repo
+plugins: anyio-4.12.1, langsmith-0.7.5
+collecting ... collected 0 items / 1 error
+
+=================================== ERRORS ====================================
+_____________________ ERROR collecting test_calculator.py _____________________
+C:\Users\divye\Downloads\DevOps-AI-main (1)\DevOps-AI-main\agent\venv\Lib\site-packages\_pytest\python.py:507: in importtestmodule
+    mod = import_path(
+C:\Users\divye\Downloads\DevOps-AI-main (1)\DevOps-AI-main\agent\venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Users\divye\AppData\Local\Programs\Python\Python311\Lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1204: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1176: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1147: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:690: in _load_unlocked
+    ???
+C:\Users\divye\Downloads\DevOps-AI-main (1)\DevOps-AI-main\agent\venv\Lib\site-packages\_pytest\assertion\rewrite.py:197: in exec_module
+    exec(co, module.__dict__)
+test_calculator.py:1: in <module>
+    from calculator import multiply
+E     File "C:\tmp\30468d51-42ed-4697-b122-ac0e0b0c1141\repo\calculator.py", line 1
+E       def multiply(a,b):;
+E                         ^
+E   SyntaxError: invalid syntax
+=========================== short test summary info ===========================
+ERROR test_calculator.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+============================== 1 error in 0
+
+Code Region (lines 1-2):
+def multiply(a,b):;
+  return a+b
+
+
+Output the FIXED region now (raw code only, same number of surrounding lines where unchanged):
+
+=== GENERATE_TARGETED_FIX PROMPT ===
+You are an expert software engineer. Fix ONLY the bug in the code region below.
+
+RULES:
+- Fix ONLY the specific issue described. Do NOT refactor or change unrelated code.
+- Preserve exact formatting, indentation, comments, and blank lines.
+- Return ONLY the fixed region (raw code only, no ``` fences, no explanations).
+- The region starts at line 1 of the original file.
+
+FIX HINT: remove the semicolon after the function definition
+
+Bug Type: SYNTAX
+Failing Line: 1
+
+Error Output (truncated):
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\divye\Downloads\DevOps-AI-main (1)\DevOps-AI-main\agent\venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\tmp\30468d51-42ed-4697-b122-ac0e0b0c1141\repo
+plugins: anyio-4.12.1, langsmith-0.7.5
+collecting ... collected 0 items / 1 error
+
+=================================== ERRORS ====================================
+_____________________ ERROR collecting test_calculator.py _____________________
+C:\Users\divye\Downloads\DevOps-AI-main (1)\DevOps-AI-main\agent\venv\Lib\site-packages\_pytest\python.py:507: in importtestmodule
+    mod = import_path(
+C:\Users\divye\Downloads\DevOps-AI-main (1)\DevOps-AI-main\agent\venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Users\divye\AppData\Local\Programs\Python\Python311\Lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1204: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1176: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1147: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:690: in _load_unlocked
+    ???
+C:\Users\divye\Downloads\DevOps-AI-main (1)\DevOps-AI-main\agent\venv\Lib\site-packages\_pytest\assertion\rewrite.py:197: in exec_module
+    exec(co, module.__dict__)
+test_calculator.py:1: in <module>
+    from calculator import multiply
+E     File "C:\tmp\30468d51-42ed-4697-b122-ac0e0b0c1141\repo\calculator.py", line 1
+E       def multiply(a,b):;
+E                         ^
+E   SyntaxError: invalid syntax
+=========================== short test summary info ===========================
+ERROR test_calculator.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+============================== 1 error in 0
+
+Code Region (lines 1-2):
+def multiply(a,b):
+  return a+b
+
+
+Output the FIXED region now (raw code only, same number of surrounding lines where unchanged):
+
+=== GENERATE_FIX PROMPT ===
+You are an expert software engineer fixing a specific bug.
+
+RULES:
+- Fix ONLY the specific issue described below. Do NOT refactor or change unrelated code.
+- Preserve the entire file structure, imports, comments, and formatting.
+- Return ONLY the complete fixed file content — no explanations, no markdown, no code fences.
+- Make sure your fix actually RESOLVES the error shown below.
+
+
+Bug Type: SYNTAX
+Approximate Line: 1
+
+Error Output (truncated):
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\divye\Downloads\DevOps-AI-main (1)\DevOps-AI-main\agent\venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\tmp\30468d51-42ed-4697-b122-ac0e0b0c1141\repo
+plugins: anyio-4.12.1, langsmith-0.7.5
+collecting ... collected 0 items / 1 error
+
+=================================== ERRORS ====================================
+_____________________ ERROR collecting test_calculator.py _____________________
+C:\Users\divye\Downloads\DevOps-AI-main (1)\DevOps-AI-main\agent\venv\Lib\site-packages\_pytest\python.py:507: in importtestmodule
+    mod = import_path(
+C:\Users\divye\Downloads\DevOps-AI-main (1)\DevOps-AI-main\agent\venv\Lib\site-packages\_pytest\pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+C:\Users\divye\AppData\Local\Programs\Python\Python311\Lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1204: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1176: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1147: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:690: in _load_unlocked
+    ???
+C:\Users\divye\Downloads\DevOps-AI-main (1)\DevOps-AI-main\agent\venv\Lib\site-packages\_pytest\assertion\rewrite.py:197: in exec_module
+    exec(co, module.__dict__)
+test_calculator.py:1: in <module>
+    from calculator import multiply
+E     File "C:\tmp\30468d51-42ed-4697-b122-ac0e0b0c1141\repo\calculator.py", line 1
+E       def multiply(a,b):;
+E                         ^
+E   SyntaxError: invalid syntax
+=========================== short test summary info ===========================
+ERROR test_calculator.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+============================== 1 error in 0
+
+Complete File Content:
+def multiply(a,b):
+  return a+b
+
+
+Output the COMPLETE fixed file content now (raw code only, no ``` fences):

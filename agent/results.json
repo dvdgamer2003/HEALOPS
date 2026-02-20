@@ -1,9 +1,9 @@
 {
-  "repository": "https://github.com/Sarvesh2747/DEVDEMO",
-  "branch": "BLACK_MAMBA_AI_Fix",
+  "repository": "https://github.com/YASH-DHADGE/DEVDEMO",
+  "branch": "CORETECH_ABCD_AI_Fix",
   "iterations": 2,
   "failures_detected": 0,
-  "fixes_applied": 1,
+  "fixes_applied": 2,
   "final_status": "PASSED",
-  "time_taken": "15s"
+  "time_taken": "34s"
 }
