@@ -1,9 +1,9 @@
 {
-  "repository": "https://github.com/YASH-DHADGE/DEVDEMO",
+  "repository": "https://github.com/Sarvesh2747/DEVDEMO",
   "branch": "BLACK_MAMBA_AI_Fix",
   "iterations": 2,
   "failures_detected": 0,
   "fixes_applied": 1,
   "final_status": "PASSED",
-  "time_taken": "34s"
+  "time_taken": "15s"
 }
