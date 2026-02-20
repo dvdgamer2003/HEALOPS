@@ -12,6 +12,7 @@ from mangum import Mangum
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+import certifi
 from pymongo import MongoClient
 
 load_dotenv()
@@ -30,7 +31,7 @@ async def lifespan(app: FastAPI):
     global mongo_client, db
     mongo_uri = os.getenv("MONGODB_URI")
     if mongo_uri:
-        mongo_client = MongoClient(mongo_uri)
+        mongo_client = MongoClient(mongo_uri, tlsCAFile=certifi.where())
         try:
             db = mongo_client.get_default_database()
         except Exception:
