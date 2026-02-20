@@ -249,6 +249,11 @@ async def get_results(run_id: str):
     return run.get("results") or {"runId": run["runId"], "status": run["status"]}
 
 
+@app.get("/")
+async def root():
+    return {"service": "HEALOPS CI/CD Healing Agent", "status": "ok", "version": "2.0.0"}
+
+
 @app.get("/health")
 async def health():
     return {"status": "ok", "service": "cicd-healing-agent"}
