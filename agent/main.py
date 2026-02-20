@@ -8,6 +8,7 @@ import asyncio
 from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
+from mangum import Mangum
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -241,6 +242,10 @@ async def get_results(run_id: str):
 async def health():
     return {"status": "ok", "service": "cicd-healing-agent"}
 
+
+# Vercel serverless handler — bridges FastAPI (ASGI) to Vercel's Python runtime
+# lifespan="off" prevents MongoDB lifespan from blocking cold starts
+handler = Mangum(app, lifespan="off")
 
 if __name__ == "__main__":
     import uvicorn
