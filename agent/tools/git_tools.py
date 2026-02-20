@@ -1,8 +1,20 @@
 """Git operations using GitPython — clone, branch, commit, push, cleanup."""
 
-import git
 import os
 import shutil
+
+# Prevent GitPython from crashing on import when git binary is not in PATH.
+# Required for Vercel/Lambda environments where git is not pre-installed.
+# The pipeline nodes themselves will still fail gracefully at runtime if git
+# is unavailable, but at least the API server boots and serves /health etc.
+os.environ.setdefault("GIT_PYTHON_REFRESH", "quiet")
+
+try:
+    import git
+    GIT_AVAILABLE = True
+except ImportError:
+    GIT_AVAILABLE = False
+    print("[git_tools] ⚠ GitPython not available — git operations will be skipped")
 
 
 def clone_repo(github_url: str, dest_path: str, github_token: str = "") -> git.Repo:
