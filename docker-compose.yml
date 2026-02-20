@@ -1,0 +1,52 @@
+version: "3.9"
+
+services:
+  # ── Backend: FastAPI Agent ──────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./agent
+      dockerfile: Dockerfile
+    container_name: healops-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - MONGODB_URI=${MONGODB_URI}
+    env_file:
+      - ./agent/.env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    volumes:
+      # Shared tmp for repo clones (ephemeral)
+      - /tmp:/tmp
+
+  # ── Frontend: React + Nginx ─────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # API URL is handled by nginx proxy — no need to set for Docker Compose
+        VITE_API_URL: ""
+    container_name: healops-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  default:
+    name: healops-network
