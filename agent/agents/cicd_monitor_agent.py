@@ -9,7 +9,8 @@ def cicd_monitor_node(state: dict) -> dict:
     Monitor the GitHub Actions CI/CD pipeline after pushing.
     Records the iteration result in the CI/CD timeline.
     """
-    github_url = state["github_url"]
+    # Use effective_repo_url (fork if forked, otherwise original)
+    github_url = state.get("effective_repo_url") or state["github_url"]
     branch_name = state["branch_name"]
     github_token = state.get("github_token", "")
     iteration = state.get("iteration", 1)

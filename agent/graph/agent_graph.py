@@ -59,6 +59,8 @@ class AgentState(TypedDict):
     config_fix_changed: bool         # True if config_fix_agent wrote ≥1 new file
     tests_generated: bool            # True once test_generator_node has run
     no_diff_counts: dict             # per-file no-diff retry counter
+    effective_repo_url: str           # The actual repo URL used (fork URL if forked, else github_url)
+    forked_from: str                  # Original repo URL if the agent forked, else None
 
 
 # ─── Conditional Helpers ───
