@@ -60,7 +60,17 @@ body {
   }
 
   .input-field {
-    @apply w-full px-4 py-3 bg-surface-900/80 border border-white/[0.08] rounded-xl text-gray-200 placeholder-gray-500 font-medium focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500/50 transition-all duration-200;
+    @apply w-full px-4 py-3 bg-surface-900/60 transition-all duration-300 border border-white/5 rounded-xl text-gray-200 placeholder-gray-500 font-medium focus:outline-none focus:ring-2 focus:ring-brand-500/60 focus:border-brand-500/60 focus:bg-surface-800 shadow-inner;
+    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+  }
+
+  .premium-glow {
+    box-shadow: 0 0 40px -10px rgba(99, 102, 241, 0.4);
+  }
+
+  .premium-box {
+    background: linear-gradient(145deg, rgba(30, 30, 46, 0.8) 0%, rgba(17, 17, 27, 0.95) 100%);
+    @apply border border-white/[0.05] rounded-3xl shadow-2xl backdrop-blur-2xl;
   }
 }
 

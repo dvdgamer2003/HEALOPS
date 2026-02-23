@@ -14,7 +14,7 @@ try:
     GIT_AVAILABLE = True
 except ImportError:
     GIT_AVAILABLE = False
-    print("[git_tools] ⚠ GitPython not available — git operations will be skipped")
+    print("[git_tools] GitPython not available — git operations will be skipped")
 
 
 def clone_repo(github_url: str, dest_path: str, github_token: str = "") -> git.Repo:
@@ -27,7 +27,7 @@ def clone_repo(github_url: str, dest_path: str, github_token: str = "") -> git.R
         clone_url = github_url.replace("https://", f"https://{github_token}@")
         
     repo = git.Repo.clone_from(clone_url, dest_path)
-    print(f"[git_tools] ✓ Cloned {github_url} → {dest_path}")
+    print(f"[git_tools] Cloned {github_url} -> {dest_path}")
     return repo
 
 
@@ -35,13 +35,14 @@ def create_branch_and_checkout(repo_path: str, branch_name: str) -> None:
     """Create a new branch and switch to it."""
     repo = git.Repo(repo_path)
     repo.git.checkout("-b", branch_name)
-    print(f"[git_tools] ✓ Created and checked out branch: {branch_name}")
+    print(f"[git_tools] Created and checked out branch: {branch_name}")
 
 
 def commit_and_push(repo_path: str, branch_name: str, commit_message: str) -> bool:
     """
     Stage all changes, commit with [AI-AGENT] prefix, and push to origin.
-    Returns True if changes were committed and pushed, False if nothing to commit.
+    Returns True if changes were committed AND pushed successfully.
+    Returns False if nothing to commit or if push failed.
     """
     repo = git.Repo(repo_path)
     repo.git.add("--all")
@@ -50,13 +51,14 @@ def commit_and_push(repo_path: str, branch_name: str, commit_message: str) -> bo
     if repo.is_dirty() or repo.untracked_files:
         repo.index.commit(f"[AI-AGENT] {commit_message}")
 
-        # Push natively using GitPython directly, explicitly ignoring token payloads
+        # Push - explicitly propagate failures so caller can handle them
         try:
             repo.git.push("origin", branch_name)
-            print(f"[git_tools] ✓ Committed and pushed: {commit_message}")
+            print(f"[git_tools] Committed and pushed: {commit_message}")
+            return True
         except Exception as e:
-            print(f"[git_tools] ⚠ Native push rejected by upstream: {e}")
-        return True
+            print(f"[git_tools] Push rejected by upstream: {e}")
+            return False
     else:
         print("[git_tools] No changes to commit")
         return False
@@ -81,21 +83,22 @@ def cleanup_repo(repo_path: str) -> bool:
             except Exception:
                 pass
             shutil.rmtree(repo_path, onerror=_on_rm_error)
-            print(f"[git_tools] ✓ Cleaned up local repo: {repo_path}")
+            print(f"[git_tools] Cleaned up local repo: {repo_path}")
             return True
         else:
             print(f"[git_tools] Repo path not found (already cleaned): {repo_path}")
             return True
     except Exception as e:
-        print(f"[git_tools] ✗ Cleanup failed for {repo_path}: {e}")
+        print(f"[git_tools] Cleanup failed for {repo_path}: {e}")
         return False
 
 
-def generate_branch_name(team_name: str, leader_name: str) -> str:
+def generate_branch_name(commit_message: str) -> str:
     import re
-    team = team_name.upper().replace(" ", "_")
-    leader = leader_name.upper().replace(" ", "_")
-    # Strip all non-alphanumeric/underscore characters
-    team = re.sub(r"[^A-Z0-9_]", "", team)
-    leader = re.sub(r"[^A-Z0-9_]", "", leader)
-    return f"{team}_{leader}_AI_Fix"
+    import uuid
+    # Create a safe branch name from the commit message
+    clean_msg = re.sub(r'[^a-zA-Z0-9\s]', '', commit_message).strip().replace(" ", "-").lower()
+    # Keep it reasonably short
+    short_msg = clean_msg[:30] if clean_msg else "auto"
+    uid = str(uuid.uuid4())[:6]
+    return f"healops/{short_msg}-{uid}"

@@ -24,8 +24,7 @@ def repo_clone_node(state: dict) -> dict:
     """
     run_id = state["run_id"]
     github_url = state["github_url"]
-    team_name = state["team_name"]
-    leader_name = state["leader_name"]
+    commit_message = state["commit_message"]
     github_token = state.get("github_token", "")
 
     # Set up local path
@@ -65,7 +64,7 @@ def repo_clone_node(state: dict) -> dict:
         logs.append(f"✓ Cloned {github_url}")
 
     # ── Step 3: Create fix branch ────────────────────────────────────────────
-    branch_name = generate_branch_name(team_name, leader_name)
+    branch_name = generate_branch_name(commit_message)
     create_branch_and_checkout(repo_path, branch_name)
     logs.append(f"✓ Created branch: {branch_name}")
     print(f"[AGENT] cloned repo, created branch: {branch_name}")

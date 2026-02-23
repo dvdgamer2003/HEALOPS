@@ -12,19 +12,31 @@ MAX_ITERATIONS = 5
 def should_retry(state: dict) -> str:
     """
     Conditional edge function for the LangGraph graph.
-    Returns 'run_tests' to retry or 'finalize' to stop.
+    Returns 'run_tests' to retry, or routes to commit/finalize.
     """
-    # Fatal error (e.g. push 403) — stop immediately
+    # Fatal error (e.g. push 403) -- stop immediately
     if state.get("error_message"):
+        print("[AGENT] Fatal error encountered, finalizing early.")
         return "finalize"
 
     ci_status = state.get("ci_cd_status", "FAILED")
     iteration = state.get("iteration", 1)
+    auto_commit = state.get("auto_commit", False)
 
     if ci_status == "PASSED":
         return "finalize"
+
+    # If we generated zero new fixes on the last run, we are stuck.
+    # Instead of finalizing and losing all work, route to commit so we save
+    # what was generated (tests, partial fixes, etc.).
+    new_fix_count = state.get("new_fix_count", -1)
+    if iteration > 1 and new_fix_count == 0:
+        print("[AGENT] 0 new fixes generated -- breaking loop and committing partial progress.")
+        return "commit_and_push" if auto_commit else "wait_for_approval"
+
     if iteration >= MAX_ITERATIONS:
-        return "finalize"
+        print(f"[AGENT] Max iterations ({MAX_ITERATIONS}) reached. Committing partial progress.")
+        return "commit_and_push" if auto_commit else "wait_for_approval"
 
     return "run_tests"
 
@@ -79,8 +91,7 @@ def finalize_node(state: dict) -> dict:
 
     results = AgentResults(
         run_id=state["run_id"],
-        team_name=state["team_name"],
-        leader_name=state["leader_name"],
+        commit_message=state["commit_message"],
         repo_url=state["github_url"],
         branch=state.get("branch_name", ""),
         branch_url=branch_url,

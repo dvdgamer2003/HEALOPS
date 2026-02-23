@@ -33,6 +33,7 @@ export default {
                 'fade-in': 'fadeIn 0.5s ease-out forwards',
                 'slide-up': 'slideUp 0.4s ease-out forwards',
                 'glow': 'glow 2s ease-in-out infinite alternate',
+                'shimmer': 'shimmer 2s infinite',
             },
             keyframes: {
                 fadeIn: {
@@ -46,6 +47,9 @@ export default {
                 glow: {
                     '0%': { boxShadow: '0 0 5px rgba(99,102,241,0.3)' },
                     '100%': { boxShadow: '0 0 20px rgba(99,102,241,0.6)' },
+                },
+                shimmer: {
+                    '100%': { transform: 'translateX(100%)' },
                 },
             },
         },

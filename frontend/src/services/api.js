@@ -34,3 +34,18 @@ export async function getResults(runId) {
     const { data } = await api.get(`/results/${runId}`);
     return data;
 }
+/**
+ * POST /api/resume/:runId
+ */
+export async function resumeAgent(runId, approve) {
+    const { data } = await api.post(`/resume/${runId}`, { approve });
+    return data;
+}
+
+/**
+ * POST /api/stop/:runId
+ */
+export async function stopAgent(runId) {
+    const { data } = await api.post(`/stop/${runId}`);
+    return data;
+}

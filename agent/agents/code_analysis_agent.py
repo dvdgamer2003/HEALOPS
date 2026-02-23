@@ -23,16 +23,15 @@ UNFIXABLE_PATTERNS = {
 # Substrings in file paths that indicate config/env files
 UNFIXABLE_PATH_HINTS = ["migrations/", "apps.py", "admin.py"]
 
-# Signals that indicate a pytest COLLECTION or CONFIG failure.
-# When any are present in stderr, the root cause is NOT app-code logic;
-# Gemini should not be tasked with editing source files.
+# Signals that indicate a pytest COLLECTION or CONFIG failure where pytest itself
+# crashed before running ANY tests. When any are present AND exit class is
+# COLLECTION_ERROR/NO_TESTS_COLLECTED, route to config fix instead of code fix.
+# NOTE: ModuleNotFoundError/ImportError are intentionally NOT here -- those can
+# occur inside test-time imports on source files and CAN be fixed by the LLM.
 CONFIG_FAULT_SIGNALS = [
     "ImproperlyConfigured",
     "DJANGO_SETTINGS_MODULE",
     "django.core.exceptions",
-    "No module named",
-    "ModuleNotFoundError",
-    "ImportError",
     "no tests ran",
     "no tests were selected",
     "collected 0 items",

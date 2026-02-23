@@ -1,4 +1,5 @@
 import useAgentStore from '../store/useAgentStore';
+import { motion } from 'framer-motion';
 
 const STAGES = [
     { key: 'clone', label: 'Clone', match: 'clon', icon: '📦' },
@@ -32,8 +33,11 @@ export default function PipelineProgress() {
     const activeIdx = isDone ? STAGES.length - 1 : getActiveIndex(currentStep);
 
     return (
-        <section
-            className="glass-card p-6 animate-fade-in"
+        <motion.section
+            className="glass-card p-6"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4 }}
             role="progressbar"
             aria-label="Agent pipeline progress"
             aria-valuenow={activeIdx + 1}
@@ -112,10 +116,10 @@ export default function PipelineProgress() {
                             {i < STAGES.length - 1 && (
                                 <div
                                     className={`flex-1 h-0.5 mx-0.5 mt-[-14px] rounded-full transition-all duration-500 ${i < activeIdx
-                                            ? 'bg-emerald-500/50'
-                                            : i === activeIdx && isRunning
-                                                ? 'bg-gradient-to-r from-brand-500/50 to-transparent'
-                                                : 'bg-white/[0.06]'
+                                        ? 'bg-emerald-500/50'
+                                        : i === activeIdx && isRunning
+                                            ? 'bg-gradient-to-r from-brand-500/50 to-transparent'
+                                            : 'bg-white/[0.06]'
                                         }`}
                                 />
                             )}
@@ -123,6 +127,6 @@ export default function PipelineProgress() {
                     );
                 })}
             </div>
-        </section>
+        </motion.section>
     );
 }

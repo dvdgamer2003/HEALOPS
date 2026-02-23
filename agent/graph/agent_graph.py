@@ -31,8 +31,7 @@ from agents.retry_controller import should_retry, retry_increment_node, finalize
 class AgentState(TypedDict):
     run_id: str
     github_url: str
-    team_name: str
-    leader_name: str
+    commit_message: str
     github_token: str
     branch_name: str
     repo_local_path: str
@@ -60,24 +59,28 @@ class AgentState(TypedDict):
     tests_generated: bool            # True once test_generator_node has run
     no_diff_counts: dict             # per-file no-diff retry counter
     effective_repo_url: str           # The actual repo URL used (fork URL if forked, else github_url)
-    forked_from: str                  # Original repo URL if the agent forked, else None
+    auto_commit: bool                 # If False, agent pauses before committing
+    new_fix_count: int                # Number of new fixes generated in the last run_fixes node
 
 
 # ─── Conditional Helpers ───
 
 def _has_fixable_failures(state: dict) -> str:
     """After analysis, decide next node:
-
     - code failures found (exit 1)       → generate_fixes
-    - tests PASSED (exit 0)              → finalize
+    - tests PASSED (exit 0)              → route to commit or wait_for_approval based on auto_commit
     - config_fault (exit 4 or 5)         → apply_config_fix
     """
     exit_class = state.get("test_exit_class", "")
 
-    # Immediate stop condition: if exit_code == 0, we are done.
+    # Immediate stop condition: if exit_code == 0, we passed locally.
     if exit_class == "PASSED":
-        print("[graph] ✅ All tests passed — finalizing")
-        return "finalize"
+        if state.get("auto_commit", False):
+            print("[graph] ✅ All tests passed locally — proceeding to auto-commit")
+            return "commit_and_push"
+        else:
+            print("[graph] ✅ All tests passed locally — pausing for user approval")
+            return "wait_for_approval"
 
     failures = state.get("failures", [])
 
@@ -85,44 +88,19 @@ def _has_fixable_failures(state: dict) -> str:
         if exit_class in ("COLLECTION_ERROR", "NO_TESTS_COLLECTED"):
             print("[graph] ⚙ Config/collection fault — routing to apply_config_fix")
             return "apply_config_fix"
-        # TESTS_FAILED but 0 extractable failures
-        # If tests haven't been generated yet, route to config_fix path
-        # (which leads to dep install → test generation → commit → re-run)
-        if not state.get("tests_generated", False):
-            print("[graph] ⚙ Tests failed, 0 parseable failures, tests not yet generated — routing to config_fix")
-            return "apply_config_fix"
-        print("[graph] ⏭ Tests failed but no parseable failures — finalizing")
-        return "finalize"
+        print("[graph] ⏭ Tests failed but no parseable failures — generating fixes anyway")
+        return "generate_fixes"
 
+    print("[graph] 🐛 Code failures found — routing to generate_fixes")
     return "generate_fixes"
 
 
 def _after_config_fix(state: dict) -> str:
     """After apply_config_fix:
-    - wrote new files → reinstall deps then generate tests
-    - nothing new BUT tests not generated → still need to reinstall + generate
-    - nothing new AND tests already generated → finalize (avoid stalling)
+    - reinstall deps then run tests again
     """
-    changed = state.get("config_fix_changed", False)
-    tests_generated = state.get("tests_generated", False)
-
-    if changed:
-        print("[graph] ✅ Config fix wrote new files — reinstalling deps")
-        return "reinstall_deps"
-    if not tests_generated:
-        print("[graph] ℹ Config already done, but tests not generated yet — reinstalling deps")
-        return "reinstall_deps"
-    print("[graph] ⏭ Config fix has nothing new and tests already generated — finalizing")
-    return "finalize"
-
-
-def _should_generate_tests(state: dict) -> str:
-    """After reinstalling deps, generate tests if not already done."""
-    if state.get("tests_generated", False):
-        print("[graph] ℹ Tests already generated — skipping to commit")
-        return "commit_and_push"
-    print("[graph] 🤖 Generating tests for uncovered source files")
-    return "generate_tests"
+    print("[graph] ✅ Config fix applied — reinstalling deps")
+    return "reinstall_deps"
 
 
 def _should_monitor_cicd(state: dict) -> str:
@@ -180,23 +158,28 @@ def _reinstall_deps_node(state: dict) -> dict:
         "logs": logs,
     }
 
+def _wait_for_approval_node(state: dict) -> dict:
+    """A dummy node that acts as a breakpoint for user confirmation."""
+    logs = list(state.get("logs", []))
+    logs.append("⏸ Paused: Awaiting user confirmation to commit.")
+    # The actual pausing is handled by LangGraph's interrupt_before mechanism
+    # When resumed, this node just passes state through to commit_and_push
+    return {
+        **state,
+        "current_step": "Resuming after approval...",
+        "logs": logs,
+    }
 
 # ─── Build the Graph ───
 def build_agent_graph() -> StateGraph:
     """
-    Construct the LangGraph StateGraph.
-
-    Initial path (first run):
-      clone → install_deps → discover_tests → run_tests → analyze
-
-    Config-fault path (exit 4/5):
-      analyze → config_fix → reinstall_deps → [generate_tests →] commit → run_tests → ...
-
-    Code-fix path (exit 1 with failures):
-      analyze → generate_fixes → commit → monitor/skip_cicd → retry/finalize
-
-    Passed/unresolvable:
-      analyze → finalize
+    Construct the LangGraph StateGraph based on the new systematic workflow:
+    1. Validate/Clone
+    2. Install Deps
+    3. Discover existing tests
+    4. Generate missing tests (runs exactly once at the start)
+    5. Local verification loop (run tests → fix code → run tests)
+    6. Once local tests pass: wait for approval (if auto_commit=False) → commit → monitor CI/CD → finalize
     """
     graph = StateGraph(AgentState)
 
@@ -204,12 +187,13 @@ def build_agent_graph() -> StateGraph:
     graph.add_node("clone_repo",        repo_clone_node)
     graph.add_node("install_deps",      dep_install_node)
     graph.add_node("discover_tests",    test_discovery_node)
+    graph.add_node("generate_tests",    test_generator_node)
     graph.add_node("run_tests",         test_runner_node)
     graph.add_node("analyze_failures",  code_analysis_node)
     graph.add_node("apply_config_fix",  config_fix_node)
     graph.add_node("reinstall_deps",    _reinstall_deps_node)
-    graph.add_node("generate_tests",    test_generator_node)
     graph.add_node("generate_fixes",    fix_generator_node)
+    graph.add_node("wait_for_approval", _wait_for_approval_node)
     graph.add_node("commit_and_push",   commit_node)
     graph.add_node("monitor_cicd",      cicd_monitor_node)
     graph.add_node("skip_cicd",         _skip_cicd_node)
@@ -220,45 +204,51 @@ def build_agent_graph() -> StateGraph:
     graph.set_entry_point("clone_repo")
     graph.add_edge("clone_repo",       "install_deps")
     graph.add_edge("install_deps",     "discover_tests")
-    graph.add_edge("discover_tests",   "run_tests")        # run tests first to detect config issues
+    graph.add_edge("discover_tests",   "generate_tests")   # ALWAYS generate tests first
+    graph.add_edge("generate_tests",   "run_tests")
+
     graph.add_edge("run_tests",        "analyze_failures")
 
-    # ── After analysis: config fault / code failure / passed ──
+    # ── After analysis: local verify loop conditionals ──
     graph.add_conditional_edges(
         "analyze_failures",
         _has_fixable_failures,
         {
             "apply_config_fix": "apply_config_fix",
             "generate_fixes":   "generate_fixes",
-            "finalize":         "finalize",
+            "commit_and_push":  "commit_and_push", # Proceed directly if auto_commit=True
+            "wait_for_approval": "wait_for_approval", # Interrupt before this if auto_commit=False
         },
     )
 
-    # ── Config-fix path: fix → reinstall → maybe generate tests → commit ──
+    # ── Approval path ──
+    graph.add_edge("wait_for_approval", "commit_and_push")
+
+    # ── Config-fix path: fix → reinstall → run tests ──
     graph.add_conditional_edges(
         "apply_config_fix",
         _after_config_fix,
         {
             "reinstall_deps": "reinstall_deps",
-            "finalize":       "finalize",
         },
     )
+    graph.add_edge("reinstall_deps", "run_tests")
 
+    # ── Code-fix path: fix → retry local verifications loop ──
+    graph.add_edge("generate_fixes", "retry_increment")
+    
     graph.add_conditional_edges(
-        "reinstall_deps",
-        _should_generate_tests,
+        "retry_increment",
+        should_retry,
         {
-            "generate_tests": "generate_tests",
+            "run_tests": "run_tests",
+            "finalize": "finalize",
             "commit_and_push": "commit_and_push",
-        },
+            "wait_for_approval": "wait_for_approval",
+        }
     )
 
-    graph.add_edge("generate_tests",   "commit_and_push")
-
-    # ── Code-fix path: fix → commit ──
-    graph.add_edge("generate_fixes",   "commit_and_push")
-
-    # ── After commit: monitor CI/CD or skip ──
+    # ── After successful local verification → commit/CI ──
     graph.add_conditional_edges(
         "commit_and_push",
         _should_monitor_cicd,
@@ -268,32 +258,11 @@ def build_agent_graph() -> StateGraph:
         },
     )
 
-    # ── After CI/CD: retry or finalize ──
-    graph.add_conditional_edges(
-        "monitor_cicd",
-        should_retry,
-        {
-            "run_tests": "retry_increment",
-            "finalize":  "finalize",
-        },
-    )
-
-    graph.add_conditional_edges(
-        "skip_cicd",
-        should_retry,
-        {
-            "run_tests": "retry_increment",
-            "finalize":  "finalize",
-        },
-    )
-
-    graph.add_edge("retry_increment", "run_tests")
-
-    # ── Finalize → END ──
+    # ── Finalize ──
+    graph.add_edge("monitor_cicd", "finalize")
+    graph.add_edge("skip_cicd", "finalize")
     graph.add_edge("finalize", END)
 
-    return graph.compile()
-
-
-# Singleton compiled graph
-agent_graph = build_agent_graph()
+    # Compile with interruption set *before* wait_for_approval
+    # This ensures backend `astream` will `break` safely
+    return graph

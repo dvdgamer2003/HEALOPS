@@ -41,8 +41,7 @@ class ScoreBreakdown(BaseModel):
 class AgentResults(BaseModel):
     """Complete results payload returned when the agent finishes."""
     run_id: str
-    team_name: str
-    leader_name: str
+    commit_message: str
     repo_url: str
     branch: str
     branch_url: str = ""

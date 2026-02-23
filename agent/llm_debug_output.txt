@@ -1174,3 +1174,180 @@ def multiply(a,b):
 --- TARGET: /tmp/30468d51-42ed-4697-b122-ac0e0b0c1141/repo/calculator.py ---
 def multiply(a, b):
   return a * b
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a+b
+
+
+--- TARGET: /tmp/5b612b0d-551a-43fa-8cc7-d52a23bc3f10/repo/calculator.py ---
+def multiply(a, b):
+  return a * b
+
+--- TARGET: /tmp/fd2a21a0-9b5e-4491-97af-530f21058e29/repo/calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: /tmp/fd2a21a0-9b5e-4491-97af-530f21058e29/repo/calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: /tmp/9fa136db-00c4-4ffc-867c-9e6bab9ec0eb/repo/calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: /tmp/9fa136db-00c4-4ffc-867c-9e6bab9ec0eb/repo/calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: /tmp/5cb78565-915b-434d-8a63-ef41b1ee862b/repo/calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: /tmp/5cb78565-915b-434d-8a63-ef41b1ee862b/repo/calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: /tmp/baa84cb3-47c6-4888-af82-c18e48837295/repo/calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: /tmp/db31329a-9db3-45c0-8cb1-32203a9e2522/repo/calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: /tmp/20d9d8f1-9b36-4c85-b90e-211ebae327c3/repo/calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: /tmp/0ee6d0b4-8928-4f4f-8e4d-940697af32d1/repo/calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: /tmp/f81c7c02-50a4-4a48-9e15-412985545e97/repo/calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: /tmp/f77c327a-aed6-4a97-b929-40aec9c0e990/repo/calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: /tmp/b28d787a-60ec-4d1e-9908-620d767a7410/repo/calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a+b
+
+
+--- TARGET: /tmp/43dba07f-04dd-4ec2-b645-0690adf280dc/repo/calculator.py ---
+def multiply(a,b)
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a+b
+
+
+--- TARGET: /tmp/43dba07f-04dd-4ec2-b645-0690adf280dc/repo/calculator.py ---
+def multiply(a,b):
+  return a*b
+
+
+--- TARGET: /tmp/f309caa3-39bf-4183-8994-d2c757b440d4/repo/calculator.py ---
+def multiply(a,b):
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a, b):
+    return a * b
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a+b
+
+
+--- TARGET: /tmp/5e841820-3040-45be-9233-444d4f6ca54d/repo/calculator.py ---
+def multiply(a, b):
+    return a * b

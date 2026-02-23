@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import useAgentStore from '../store/useAgentStore';
+import { motion } from 'framer-motion';
 
 const BUG_BADGE_STYLES = {
     LINTING: 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30',
@@ -75,22 +76,45 @@ export default function FixesAppliedTable() {
 
     if (!results) {
         return (
-            <section className="glass-card p-8 animate-fade-in flex flex-col items-center justify-center min-h-[200px]">
+            <motion.section
+                className="glass-card p-8 flex flex-col items-center justify-center min-h-[200px]"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4 }}
+            >
                 <div className="w-16 h-16 rounded-2xl bg-surface-900/80 flex items-center justify-center mb-4">
                     <svg className="w-8 h-8 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
                 </div>
                 <p className="text-gray-500 text-sm font-medium">Applied fixes will appear here</p>
-            </section>
+            </motion.section>
         );
     }
 
     const fixedCount = fixes.filter(f => f.status === 'Fixed' || f.status === 'Generated').length;
     const failedCount = fixes.filter(f => f.status !== 'Fixed' && f.status !== 'Generated').length;
 
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: { staggerChildren: 0.05, delayChildren: 0.1 }
+        }
+    };
+
+    const rowVariants = {
+        hidden: { opacity: 0, x: -10 },
+        visible: { opacity: 1, x: 0 }
+    };
+
     return (
-        <section className="glass-card p-6 animate-slide-up">
+        <motion.section
+            className="glass-card p-6"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+        >
             {/* Header */}
             <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
@@ -150,7 +174,11 @@ export default function FixesAppliedTable() {
                     </thead>
                     <tbody className="divide-y divide-white/[0.03]">
                         {sorted.map((fix, i) => (
-                            <tr key={i} className="hover:bg-white/[0.02] transition-colors group">
+                            <motion.tr
+                                key={i}
+                                variants={rowVariants}
+                                className="hover:bg-white/[0.02] transition-colors group"
+                            >
                                 <td className="py-3 px-2 font-mono text-xs text-gray-300 max-w-[150px] truncate" title={fix.file}>
                                     <span className="group-hover:text-white transition-colors">{fix.file}</span>
                                 </td>
@@ -168,7 +196,7 @@ export default function FixesAppliedTable() {
                                 <td className="py-3 px-2 text-center">
                                     <StatusIcon status={fix.status} />
                                 </td>
-                            </tr>
+                            </motion.tr>
                         ))}
                     </tbody>
                 </table>
@@ -184,6 +212,6 @@ export default function FixesAppliedTable() {
                 <span>Showing {sorted.length} of {fixes.length} fix{fixes.length !== 1 ? 'es' : ''}</span>
                 <span>Mistral AI · autonomous repair</span>
             </div>
-        </section>
+        </motion.section>
     );
 }

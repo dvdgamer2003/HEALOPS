@@ -315,11 +315,22 @@ def test_generator_node(state: dict) -> dict:
             logs.append(f"  ⏭ Skipped {rel_source} (no JS test framework in repo)")
             continue
 
+        # Ensure README is read (to inform test case generation as requested)
+        readme_content = ""
+        readme_path = os.path.join(repo_path, "README.md")
+        if os.path.exists(readme_path):
+            try:
+                with open(readme_path, "r", errors="replace") as rh:
+                    # Cap readme context to avoid token bloat
+                    readme_content = rh.read()[:5000]
+            except OSError:
+                pass
+
         print(f"[AGENT] generating {file_fw} tests for: {rel_source}")
 
-        # Call Gemini with per-file framework
+        # Call Gemini with per-file framework and readme context
         test_code = generate_tests(
-            source_code=source_code,
+            source_code=f"/* README CONTEXT:\n{readme_content}\n*/\n\n{source_code}" if readme_content else source_code,
             file_path=rel_source,
             framework=file_fw,
             is_django=file_is_django,

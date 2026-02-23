@@ -88,7 +88,7 @@ def get_latest_workflow_run(github_url: str, branch_name: str, github_token: str
             "url": latest.html_url,
         }
     except Exception as e:
-        print(f"[github_api_tools] Error fetching workflow run: {e}")
+        print(f"[github_api_tools] Error fetching workflow run for {github_url} on branch {branch_name}: {e}")
         return None
 
 
@@ -105,7 +105,8 @@ def poll_workflow_status(
     """
     start = time.time()
     no_workflow_count = 0
-    max_no_workflow_attempts = 2  # Stop after 20s if no workflow exists
+    # Increase max attempts to wait up to 90 seconds for a workflow to appear after a push
+    max_no_workflow_attempts = 6
 
     # Fast path: if we already know this repo has no workflows, skip immediately
     repo_key = f"{github_url}:{branch_name}"
@@ -120,8 +121,9 @@ def poll_workflow_status(
             no_workflow_count += 1
             if no_workflow_count >= max_no_workflow_attempts:
                 _NO_WORKFLOW_REPOS.add(repo_key)
-                print(f"[github_api_tools] No workflow found after {no_workflow_count} attempts — caching as no-workflow repo")
+                print(f"[github_api_tools] No workflow found after {no_workflow_count} attempts ({no_workflow_count * poll_interval}s) — caching as no-workflow repo")
                 return {"status": "SKIPPED", "details": None}
+            print(f"[github_api_tools] No workflow found yet (attempt {no_workflow_count}/{max_no_workflow_attempts}), waiting...")
             time.sleep(poll_interval)
             continue
 

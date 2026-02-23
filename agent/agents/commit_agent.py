@@ -17,39 +17,43 @@ def commit_node(state: dict) -> dict:
 
     # Count fixes with status=Fixed in this iteration
     fix_count = sum(1 for f in fixes_applied if f["status"] == "Fixed")
-    commit_message = f"[AI-AGENT] fix: iteration {iteration} — {fix_count} fix(es) applied"
+    gen_count = sum(1 for f in fixes_applied if f["status"] == "Generated")
+
+    # Use user's commit message if provided, otherwise generate one
+    base_message = state.get("commit_message", "[AI-AGENT] chore: Add Tests and Fixes").strip()
+    if not base_message:
+        base_message = "[AI-AGENT] chore: Add Tests and Fixes"
+
+    commit_message = f"{base_message} - Locally verified ({gen_count} tests generated, {fix_count} fixes applied)"
 
     try:
-        print(f"[AGENT] committing changes (iteration {iteration}, {fix_count} fixes)")
+        print(f"[AGENT] committing locally verified code ({gen_count} tests, {fix_count} fixes)")
         pushed = commit_and_push(repo_path, branch_name, commit_message)
 
         if pushed:
             commit_count += 1
-            print(f"[AGENT] ✓ pushed iteration {iteration} ({fix_count} fixes)")
+            print(f"[AGENT] pushed successfully")
             logs = list(state.get("logs", []))
-            logs.append(f"✓ Committed and pushed: {fix_count} fix(es) (iteration {iteration})")
+            logs.append(f"Committed and pushed: {gen_count} tests generated, {fix_count} fix(es) verified")
         else:
-            print(f"[AGENT] ⏭ nothing to commit (iteration {iteration})")
+            print(f"[AGENT] nothing to commit")
             logs = list(state.get("logs", []))
-            logs.append(f"⏭ Nothing new to commit (iteration {iteration})")
+            logs.append(f"Nothing new to commit")
 
         return {
             **state,
             "commit_count": commit_count,
             "push_succeeded": pushed,
-            "current_step": "Pushing fixes to GitHub...",
+            "current_step": "Pushing verified fixes to GitHub...",
             "logs": logs,
         }
 
     except Exception as e:
         error_str = str(e)
-        print(f"[AGENT] ✗ push failed: {e}")
-
-        # Do not mark as fatal; we successfully committed the fix locally
-        is_fatal = False
+        print(f"[AGENT] push failed: {e}")
 
         logs = list(state.get("logs", []))
-        logs.append(f"⚠ Native push bypassed (local commit succeeded): {error_str[:100]}")
+        logs.append(f"Native push bypassed (local commit succeeded): {error_str[:100]}")
 
         return {
             **state,

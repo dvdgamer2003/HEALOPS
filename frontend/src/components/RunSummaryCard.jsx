@@ -1,18 +1,24 @@
 import useAgentStore from '../store/useAgentStore';
+import { motion } from 'framer-motion';
 
 export default function RunSummaryCard() {
     const { results } = useAgentStore();
 
     if (!results) {
         return (
-            <section className="glass-card p-8 animate-fade-in flex flex-col items-center justify-center min-h-[260px]">
+            <motion.section
+                className="glass-card p-8 flex flex-col items-center justify-center min-h-[260px]"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+            >
                 <div className="w-16 h-16 rounded-2xl bg-surface-900/80 flex items-center justify-center mb-4">
                     <svg className="w-8 h-8 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                 </div>
                 <p className="text-gray-500 text-sm font-medium">Run summary will appear here</p>
-            </section>
+            </motion.section>
         );
     }
 
@@ -72,10 +78,28 @@ export default function RunSummaryCard() {
         },
     ];
 
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: { staggerChildren: 0.1 }
+        }
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, y: 15 },
+        visible: { opacity: 1, y: 0 }
+    };
+
     return (
-        <section className="glass-card p-6 animate-slide-up">
+        <motion.section
+            className="glass-card p-6"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+        >
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
+            <motion.div variants={itemVariants} className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
                         <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -90,27 +114,30 @@ export default function RunSummaryCard() {
                 >
                     {isPassed ? '✓ PASSED' : '✗ FAILED'}
                 </span>
-            </div>
+            </motion.div>
 
             {/* Hero Stat Cards */}
             <div className="grid grid-cols-2 gap-3 mb-5">
                 {statCards.map(({ label, value, icon, color, shadow, textColor }) => (
-                    <div key={label} className="bg-surface-900/60 border border-white/[0.06] rounded-xl p-4 flex flex-col gap-2 hover:border-white/[0.12] transition-colors">
+                    <motion.div
+                        key={label}
+                        variants={itemVariants}
+                        className="bg-surface-900/60 border border-white/[0.06] rounded-xl p-4 flex flex-col gap-2 hover:border-white/[0.12] transition-colors"
+                    >
                         <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${color} flex items-center justify-center text-white shadow-lg ${shadow}`}>
                             {icon}
                         </div>
                         <div className={`text-2xl font-extrabold ${textColor} font-mono`}>{value}</div>
                         <div className="text-xs text-gray-500 font-medium">{label}</div>
-                    </div>
+                    </motion.div>
                 ))}
             </div>
 
             {/* Repo + Branch Info */}
-            <div className="space-y-2 pt-3 border-t border-white/[0.04]">
+            <motion.div variants={itemVariants} className="space-y-2 pt-3 border-t border-white/[0.04]">
                 {[
                     { label: 'Repository', value: results.repo_url, mono: true, truncate: true },
-                    { label: 'Team', value: results.team_name },
-                    { label: 'Leader', value: results.leader_name },
+                    { label: 'Description', value: results.commit_message },
                     {
                         label: 'Branch',
                         value: results.branch,
@@ -143,7 +170,7 @@ export default function RunSummaryCard() {
                         )}
                     </div>
                 ))}
-            </div>
-        </section>
+            </motion.div>
+        </motion.section>
     );
 }
