@@ -48,25 +48,25 @@ def repo_clone_node(state: dict) -> dict:
             fork_clone_url, fork_html_url = fork_repo(github_url, github_token)
             effective_repo_url = fork_html_url
             forked_from = github_url
-            logs.append(f"⚠ No write access — forked to: {fork_html_url}")
-            logs.append(f"✓ Cloned from fork: {fork_html_url}")
+            logs.append(f"No write access — using fork: {fork_html_url}")
+            logs.append(f"Cloned fork")
             print(f"[AGENT] ✓ Forked → {fork_html_url}, cloning fork...")
             clone_repo(fork_clone_url, repo_path, "")  # Token already embedded in URL
         except Exception as e:
             # Fork failed — fall back to read-only clone of original
             print(f"[AGENT] Fork failed ({e}), falling back to direct clone (read-only)")
-            logs.append(f"⚠ Fork failed — cloning original read-only: {github_url}")
+            logs.append(f"Fork failed — cloning read-only")
             clone_repo(github_url, repo_path, github_token)
     else:
         # ── Step 2a: Direct clone ────────────────────────────────────────────
         print(f"[AGENT] Write access confirmed — cloning {github_url} directly")
         clone_repo(github_url, repo_path, github_token)
-        logs.append(f"✓ Cloned {github_url}")
+        logs.append(f"Repository cloned")
 
     # ── Step 3: Create fix branch ────────────────────────────────────────────
     branch_name = generate_branch_name(commit_message)
     create_branch_and_checkout(repo_path, branch_name)
-    logs.append(f"✓ Created branch: {branch_name}")
+    logs.append(f"Branch ready: {branch_name}")
     print(f"[AGENT] cloned repo, created branch: {branch_name}")
 
     return {

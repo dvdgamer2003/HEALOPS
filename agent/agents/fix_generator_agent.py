@@ -143,8 +143,8 @@ def fix_generator_node(state: dict) -> dict:
     logs = list(state.get("logs", []))
     skipped = len(files_failed_before & {f["file"] for f in failures})
     if skipped:
-        logs.append(f"⏭ Skipped {skipped} file(s) (permanently blacklisted)")
-    logs.append(f"Iteration {iteration}: {new_fix_count} new fix(es), {len(new_failed_files)} unfixable")
+        logs.append(f"Skipped {skipped} file(s) — could not be auto-fixed")
+    logs.append(f"Fix attempt {iteration}: applied {new_fix_count} patch(es), {len(new_failed_files)} failed")
 
     # Merge failed files for future iterations
     all_failed = files_failed_before | new_failed_files

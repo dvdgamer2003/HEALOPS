@@ -70,11 +70,7 @@ def code_analysis_node(state: dict) -> dict:
     #   by Gemini), NOT from missing config.  Do NOT skip analysis in that case.
     if exit_class in ("COLLECTION_ERROR", "NO_TESTS_COLLECTED"):
         logs = list(state.get("logs", []))
-        logs.append(
-            "⚠ Config/collection fault detected (exit class: {}) — skipping Gemini file-fix. "
-            "Root cause is likely: missing pytest.ini, DJANGO_SETTINGS_MODULE not set, "
-            "or pytest-django not installed.".format(exit_class)
-        )
+        logs.append(f"Config issue detected — skipping code analysis (cause: {exit_class})")
         print(f"[AGENT] analyzing failures — config fault ({exit_class}), returning 0 failures")
         return {
             **state,
@@ -130,8 +126,8 @@ def code_analysis_node(state: dict) -> dict:
 
     logs = list(state.get("logs", []))
     if skipped_count:
-        logs.append(f"⏭ Skipped {skipped_count} unfixable config file(s)")
-    logs.append(f"Identified {len(failures)} fixable failure(s)")
+        logs.append(f"Skipped {skipped_count} config file(s) — AI cannot edit these")
+    logs.append(f"Found {len(failures)} issue(s) to fix")
 
     return {
         **state,

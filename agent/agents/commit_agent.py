@@ -34,11 +34,11 @@ def commit_node(state: dict) -> dict:
             commit_count += 1
             print(f"[AGENT] pushed successfully")
             logs = list(state.get("logs", []))
-            logs.append(f"Committed and pushed: {gen_count} tests generated, {fix_count} fix(es) verified")
+            logs.append(f"Changes pushed to GitHub ({gen_count} test(s), {fix_count} fix(es) applied)")
         else:
             print(f"[AGENT] nothing to commit")
             logs = list(state.get("logs", []))
-            logs.append(f"Nothing new to commit")
+            logs.append("Nothing new to commit")
 
         return {
             **state,
@@ -53,7 +53,7 @@ def commit_node(state: dict) -> dict:
         print(f"[AGENT] push failed: {e}")
 
         logs = list(state.get("logs", []))
-        logs.append(f"Native push bypassed (local commit succeeded): {error_str[:100]}")
+        logs.append("Push skipped — local commit saved")
 
         return {
             **state,

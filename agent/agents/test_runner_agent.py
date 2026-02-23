@@ -43,18 +43,18 @@ def test_runner_node(state: dict) -> dict:
     exit_class = EXIT_CODE_CLASS.get(rc, f"UNKNOWN_EXIT_{rc}")
 
     if result["passed"]:
-        logs.append(f"✓ Tests PASSED (iteration {iteration})")
+        logs.append(f"Tests passed (run {iteration})")
     else:
-        logs.append(f"✗ Tests FAILED (iteration {iteration}) — exit class: {exit_class}")
+        logs.append(f"Tests failed (run {iteration})")
         # Surface stderr immediately so the cause is visible in the Activity Log
         stderr_excerpt = (result.get("stderr") or "")[:500].strip()
         if stderr_excerpt:
             logs.append(f"[stderr] {stderr_excerpt}")
         # Warn on actionable exit codes so the agent can branch correctly
         if exit_class == "COLLECTION_ERROR":
-            logs.append("⚠ Exit 4: Collection error — likely missing DJANGO_SETTINGS_MODULE, pytest-django, or a bad import in test files")
+            logs.append("Exit 4: Collection error — missing config, bad import or missing pytest-django")
         elif exit_class == "NO_TESTS_COLLECTED":
-            logs.append("⚠ Exit 5: No tests collected — no test_*.py / tests.py files matched, or all were skipped")
+            logs.append("Exit 5: No tests collected — no test files matched")
 
     return {
         **state,

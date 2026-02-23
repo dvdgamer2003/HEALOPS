@@ -34,7 +34,7 @@ def cicd_monitor_node(state: dict) -> dict:
     print(f"[AGENT] CI/CD iteration {iteration}: {ci_status}")
 
     logs = list(state.get("logs", []))
-    logs.append(f"CI/CD iteration {iteration}: {ci_status}")
+    logs.append(f"CI/CD pipeline check {iteration}: {ci_status}")
 
     return {
         **state,

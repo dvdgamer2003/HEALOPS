@@ -25,9 +25,9 @@ def dep_install_node(state: dict) -> dict:
 
     logs = list(state.get("logs", []))
     if installed:
-        logs.append(f"✓ Dependencies installed ({result['framework']})")
+        logs.append(f"Dependencies installed ({result['framework']})")
     elif result["framework"] != "none":
-        logs.append(f"✗ Dependency install failed: {message[:100]}")
+        logs.append(f"Dependency install failed — check requirements file")
 
     return {
         **state,

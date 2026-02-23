@@ -123,7 +123,7 @@ def _skip_cicd_node(state: dict) -> dict:
         "message": "No push — CI/CD check skipped",
     })
     logs = list(state.get("logs", []))
-    logs.append(f"⏭ Skipped CI/CD monitoring (no new push)")
+    logs.append("CI/CD check skipped — nothing was pushed")
     print(f"[graph] ⏭ Skipping CI/CD monitor — nothing was pushed")
 
     return {

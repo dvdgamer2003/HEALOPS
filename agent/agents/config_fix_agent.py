@@ -173,10 +173,10 @@ def config_fix_node(state: dict) -> dict:
             "commit_message": "[AI-AGENT] fix(ci): add pytest.ini with DJANGO_SETTINGS_MODULE to fix collection import crash",
             "status": "Fixed",
         })
-        logs.append(f"📝 Created pytest.ini (DJANGO_SETTINGS_MODULE={settings_module})")
+        logs.append(f"Created pytest config (Django settings: {settings_module})")
         print(f"[AGENT] ✓ created pytest.ini")
     else:
-        logs.append("ℹ pytest.ini already exists — skipping")
+        logs.append("pytest config already exists")
         print(f"[AGENT] ℹ pytest.ini already exists")
 
     # ── 3. Patch requirements.txt ─────────────────────────────────────────────
@@ -189,7 +189,7 @@ def config_fix_node(state: dict) -> dict:
             "commit_message": "[AI-AGENT] fix(deps): add pytest + pytest-django so CI can collect tests",
             "status": "Fixed",
         })
-        logs.append("📝 Patched requirements.txt: added pytest + pytest-django")
+        logs.append("Added test dependencies to requirements.txt")
         print(f"[AGENT] ✓ patched requirements.txt")
 
     # ── 4. Scaffold a minimal test file if NO_TESTS_COLLECTED ─────────────────
@@ -217,10 +217,10 @@ def config_fix_node(state: dict) -> dict:
                 "commit_message": f"[AI-AGENT] test({app_name}): scaffold minimal smoke tests so pytest collects ≥1 test",
                 "status": "Fixed",
             })
-            logs.append(f"📝 Scaffolded {rel_path} with 3 smoke tests")
+            logs.append(f"Created starter test file: {rel_path}")
             print(f"[AGENT] ✓ scaffolded {rel_path}")
         else:
-            logs.append(f"ℹ {app_name}/tests.py already has content — skipping scaffold")
+            logs.append(f"Tests already exist in {app_name}/tests.py")
 
     # ── 5. pip-install the new deps immediately (best-effort) ─────────────────
     _install_test_deps(repo_path)
@@ -228,10 +228,10 @@ def config_fix_node(state: dict) -> dict:
     # ── Summary ───────────────────────────────────────────────────────────────
     changed = len(created_files) > 0
     if changed:
-        logs.append(f"✓ Config fix: {len(created_files)} file(s) written → {', '.join(created_files)}")
+        logs.append(f"Config updated: {len(created_files)} file(s) written")
         print(f"[AGENT] config fix complete: {created_files}")
     else:
-        logs.append("⚠ Config fix: nothing new to write — signalling finalize")
+        logs.append("No config changes needed")
         print(f"[AGENT] ⚠ nothing new to write — will finalize")
 
     return {

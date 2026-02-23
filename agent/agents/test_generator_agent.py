@@ -50,8 +50,9 @@ SKIP_SOURCE_PATTERNS = {
 }
 
 # Minimum source-file size to bother generating tests for (bytes).
-# Tiny files (empty stubs, single-line constants) are skipped.
-MIN_SOURCE_BYTES = 200
+# Very small files (truly empty stubs, zero-byte files) are skipped.
+# Small but meaningful files (e.g. calculator.py with 1-2 functions) ARE included.
+MIN_SOURCE_BYTES = 10
 
 # ALL extensions we ever look at — we collect both Python and JS in every repo.
 ALL_SOURCE_EXTENSIONS = (".py", ".js", ".ts", ".jsx", ".tsx")
@@ -126,6 +127,12 @@ def _find_source_files(repo_path: str, extensions: tuple) -> list[str]:
             if fname.endswith(extensions):
                 full = os.path.join(dirpath, fname)
                 rel = os.path.relpath(full, repo_path)
+                # Skip test files — we don't generate tests for test files
+                basename = os.path.basename(rel)
+                if basename.startswith("test_") or basename.endswith(("_test.py", ".test.js", ".spec.js", ".test.ts", ".spec.ts")):
+                    continue
+                if "tests/" in rel.replace("\\", "/") or "test/" in rel.replace("\\", "/") or "__tests__" in rel:
+                    continue
                 if not _is_skippable(rel) and os.path.getsize(full) >= MIN_SOURCE_BYTES:
                     sources.append(rel)
     return sources
@@ -255,7 +262,7 @@ def test_generator_node(state: dict) -> dict:
     # ── Detect Django ──────────────────────────────────────────────────────────
     is_django, settings_module = _detect_django(repo_path)
     if is_django:
-        logs.append(f"🔍 Django project detected (settings: {settings_module})")
+        logs.append(f"Django detected: {settings_module}")
         print(f"[AGENT] Django project: {settings_module}")
 
     # ── Detect JS test framework for gating ───────────────────────────────────
@@ -267,26 +274,30 @@ def test_generator_node(state: dict) -> dict:
 
     # ── Find ALL source files (Python + JS/TS) without tests ──────────────────
     source_files = _find_source_files(repo_path, ALL_SOURCE_EXTENSIONS)
-    uncovered = [
-        f for f in source_files
-        if not _already_has_test(f, existing_tests, repo_path)
-    ]
+
+    # Check each source file individually and log coverage status
+    covered = []
+    uncovered = []
+    for src in source_files:
+        if _already_has_test(src, existing_tests, repo_path):
+            covered.append(src)
+            print(f"[AGENT] ✓ test exists for {src} — skipping generation")
+        else:
+            uncovered.append(src)
+            print(f"[AGENT] ✗ no test found for {src} — will generate")
 
     py_count = sum(1 for f in source_files if f.endswith(".py"))
     js_count = len(source_files) - py_count
     print(f"[AGENT] {len(source_files)} source file(s) "
           f"(Python: {py_count}, JS/TS: {js_count}), "
-          f"{len(uncovered)} uncovered, will generate up to {MAX_FILES_TO_GENERATE}")
-    logs.append(f"🔍 Found {len(source_files)} source file(s) "
-                f"(🐍 Python: {py_count}  📜 JS/TS: {js_count}) — "
-                f"{len(uncovered)} without tests")
+          f"{len(covered)} covered, {len(uncovered)} need tests")
+    logs.append(f"{len(source_files)} source file(s) — {len(covered)} with tests, {len(uncovered)} need generation")
 
     if not uncovered:
-        logs.append("✓ All source files already have corresponding tests")
+        logs.append("All source files already have tests — skipping generation")
         return {**state, "logs": logs, "tests_generated": True}
 
-    logs.append(f"🤖 Generating tests for {min(len(uncovered), MAX_FILES_TO_GENERATE)} "
-                f"of {len(uncovered)} uncovered source file(s)…")
+    logs.append(f"Generating tests for {min(len(uncovered), MAX_FILES_TO_GENERATE)} file(s)")
 
     generated_test_files = list(state.get("generated_test_files", []))
     new_test_paths = []
@@ -312,7 +323,7 @@ def test_generator_node(state: dict) -> dict:
         if file_fw is None:
             js_skipped += 1
             print(f"[AGENT] ⏭ skipping JS test generation for {rel_source} (no jest/vitest detected)")
-            logs.append(f"  ⏭ Skipped {rel_source} (no JS test framework in repo)")
+            logs.append(f"Skipped {rel_source} (no JS test framework)")
             continue
 
         # Ensure README is read (to inform test case generation as requested)
@@ -339,7 +350,7 @@ def test_generator_node(state: dict) -> dict:
 
         if not test_code or len(test_code.strip()) < 50:
             print(f"[AGENT] ✗ empty/too-short response for {rel_source}")
-            logs.append(f"  ✗ Skipped {rel_source} (Gemini returned empty test)")
+            logs.append(f"Skipped {rel_source} (empty response from AI)")
             fail_count += 1
             continue
 
@@ -352,7 +363,7 @@ def test_generator_node(state: dict) -> dict:
             fh.write(test_code)
 
         print(f"[AGENT] ✓ written: {rel_test_path}")
-        logs.append(f"  ✓ Generated {rel_test_path}")
+        logs.append(f"Generated {rel_test_path}")
 
         new_test_paths.append(rel_test_path)
         generated_test_files.append(rel_test_path)
@@ -399,10 +410,10 @@ def _repair_generated_tests(state: dict, repo_path: str,
     failing_gen = _find_failing_generated_tests(state)
 
     if not failing_gen:
-        logs.append("ℹ Test generation skipped (iteration > 1, no failing generated tests)")
+        logs.append("Test generation skipped (no failing tests to repair)")
         return {**state, "logs": logs}
 
-    logs.append(f"🔧 Repairing {len(failing_gen)} failing generated test file(s)…")
+    logs.append(f"Repairing {len(failing_gen)} failing test file(s)")
     print(f"[AGENT] repairing {len(failing_gen)} failing generated test(s)")
 
     generated_test_files = list(state.get("generated_test_files", []))
@@ -417,7 +428,7 @@ def _repair_generated_tests(state: dict, repo_path: str,
         rel_source = _infer_source_from_test(rel_test)
         full_source = os.path.join(repo_path, rel_source)
         if not os.path.exists(full_source):
-            logs.append(f"  ⏭ Cannot find source for {rel_test} — skipping repair")
+            logs.append(f"Skipped repair for {rel_test} (source not found)")
             continue
 
         try:
@@ -453,12 +464,12 @@ def _repair_generated_tests(state: dict, repo_path: str,
                 "commit_message": f"[AI-AGENT] test: repair failing tests for {rel_source}",
                 "status": "Fixed",
             })
-            logs.append(f"  ✓ Repaired {rel_test}")
+            logs.append(f"Repaired {rel_test}")
             print(f"[AGENT] ✓ repaired: {rel_test}")
         else:
-            logs.append(f"  ✗ Repair failed for {rel_test}")
+            logs.append(f"Repair failed for {rel_test}")
 
-    logs.append(f"🔧 Repair complete: {repaired}/{len(failing_gen)} test file(s) fixed")
+    logs.append(f"Repair done: {repaired}/{len(failing_gen)} test(s) fixed")
     return {
         **state,
         "fixes_applied": fixes_applied,

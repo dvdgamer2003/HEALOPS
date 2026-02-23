@@ -29,10 +29,8 @@ def test_discovery_node(state: dict) -> dict:
 
     logs = list(state.get("logs", []))
     if framework == "unknown":
-        logs.append("⚠ No supported test framework detected (unknown)")
-    else:
-        logs.append(f"Detected framework: {framework}")
-    logs.append(f"Found {len(test_files)} test file(s)")
+        logs.append("No test framework detected")
+    logs.append(f"Test framework: {framework} | {len(test_files)} test file(s) found")
 
     return {
         **state,
