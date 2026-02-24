@@ -218,16 +218,16 @@ export default function App() {
                                 {/* Status pill */}
                                 {status && status !== 'IDLE' && (
                                     <div className={`hidden sm:flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border ${status === 'RUNNING' ? 'text-brand-400 bg-brand-500/10 border-brand-500/25' :
-                                            status === 'PASSED' ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/25' :
-                                                status === 'FAILED' ? 'text-red-400 bg-red-500/10 border-red-500/25' :
-                                                    status === 'AWAITING_APPROVAL' ? 'text-yellow-400 bg-yellow-500/10 border-yellow-500/25' :
-                                                        'text-gray-400 bg-gray-500/10 border-gray-500/25'
+                                        status === 'PASSED' ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/25' :
+                                            status === 'FAILED' ? 'text-red-400 bg-red-500/10 border-red-500/25' :
+                                                status === 'AWAITING_APPROVAL' ? 'text-yellow-400 bg-yellow-500/10 border-yellow-500/25' :
+                                                    'text-gray-400 bg-gray-500/10 border-gray-500/25'
                                         }`}>
                                         <span className={`w-1.5 h-1.5 rounded-full ${status === 'RUNNING' ? 'bg-brand-400 animate-pulse' :
-                                                status === 'PASSED' ? 'bg-emerald-400' :
-                                                    status === 'FAILED' ? 'bg-red-400' :
-                                                        status === 'AWAITING_APPROVAL' ? 'bg-yellow-400 animate-pulse' :
-                                                            'bg-gray-400'
+                                            status === 'PASSED' ? 'bg-emerald-400' :
+                                                status === 'FAILED' ? 'bg-red-400' :
+                                                    status === 'AWAITING_APPROVAL' ? 'bg-yellow-400 animate-pulse' :
+                                                        'bg-gray-400'
                                             }`} />
                                         {status.replace(/_/g, ' ')}
                                     </div>
@@ -348,8 +348,8 @@ export default function App() {
                                                         return (
                                                             <motion.div key={i}
                                                                 className={`flex items-center gap-4 p-3 rounded-xl border transition-all ${isActive
-                                                                        ? 'bg-brand-500/5 border-brand-500/15'
-                                                                        : 'bg-surface-900/30 border-white/[0.03]'
+                                                                    ? 'bg-brand-500/5 border-brand-500/15'
+                                                                    : 'bg-surface-900/30 border-white/[0.03]'
                                                                     }`}
                                                                 initial={{ opacity: 0, x: -16 }}
                                                                 animate={{ opacity: isActive ? 1 : 0.3, x: 0 }}

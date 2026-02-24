@@ -7,7 +7,7 @@ export default function InputSection() {
     const [githubUrl, setGithubUrl] = useState('');
     const [commitMessage, setCommitMessage] = useState('');
     const [githubToken, setGithubToken] = useState('');
-    const [autoCommit, setAutoCommit] = useState(false);
+    const [autoCommit, setAutoCommit] = useState(true);
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [elapsed, setElapsed] = useState(0);
