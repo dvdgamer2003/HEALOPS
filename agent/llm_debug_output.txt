@@ -1,0 +1,1420 @@
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a*b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a*b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a*b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a*b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a*b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a*b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a*b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a*b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a*b
+
+
+--- TARGET: inspect_leave.py ---
+import os
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'your_project.settings')
+import django
+django.setup()
+from django.contrib.auth.models import User
+
+
+--- TARGET: views.py ---
+import os
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'your_project_name.settings')
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.models import User
+from django.contrib import messages
+from django.db import connection
+
+def register(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password1 = request.POST['password1']
+        password2 = request.POST['password2']
+
+        if password1 == password2:
+            if User.objects.filter(username=username).exists():
+                messages.error(request, 'Username already exists')
+            else:
+                user = User.objects.create_user(username=username, password=password1)
+                user.save()
+                messages.success(request, 'Account created successfully')
+                return redirect('login')
+        else:
+            messages.error(request, 'Passwords do not match')
+    
+    return render(request, 'register.html')
+
+def user_login(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('home')  # Redirect to the home page
+        else:
+            messages.error(request, 'Invalid username or password')
+    
+    return render(request, 'login.html')
+
+def home(request):
+    return render(request, 'home.html')
+
+def raw_sql_example(request):
+    # Example of a raw SQL query to create a user
+    with connection.cursor() as cursor:
+        cursor.execute("INSERT INTO auth_user (username, password) VALUES (%s, %s)", ['john', 'password123'])
+
+    # Example of a raw SQL query to retrieve a user
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM auth_user WHERE username = %s", ['john'])
+        row = cursor.fetchone()
+        user_data = {
+            'id': row[0],
+            'username': row[1],
+            'password': row[2],
+            # ...other fields...
+        }
+
+    # Example of a raw SQL query to update a user
+    with connection.cursor() as cursor:
+        cursor.execute("UPDATE auth_user SET email = %s WHERE username = %s", ['john@example.com', 'john'])
+
+    # Example of a raw SQL query to delete a user
+    with connection.cursor() as cursor:
+        cursor.execute("DELETE FROM auth_user WHERE username = %s", ['john'])
+
+    return render(request, 'raw_sql_example.html', {'user_data': user_data})
+
+
+
+
+
+--- TARGET: Home\forms.py ---
+import os
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'your_project_name.settings')
+import django
+django.setup()
+
+from django import forms
+from django.contrib.auth.models import User
+from .models import Leave, Complaint, Student, Message, Attendance, MealPreference  # Assuming Leave model exists
+
+class LeaveApplicationForm(forms.ModelForm):
+    class Meta:
+        model = Leave
+        fields = ['from_date', 'to_date', 'reason']
+        widgets = {
+            'from_date': forms.DateInput(attrs={'type': 'date'}),
+            'to_date': forms.DateInput(attrs={'type': 'date'}),
+            'reason': forms.Textarea(attrs={'rows': 4}),
+        }
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        from_date = cleaned_data.get('from_date')
+        to_date = cleaned_data.get('to_date')
+        
+        if from_date and to_date:
+            if to_date < from_date:
+                raise forms.ValidationError("End date cannot be before start date")
+        
+        return cleaned_data
+
+
+class RegistrationForm(forms.ModelForm):
+    username = forms.CharField(max_length=150, required=True)
+    password = forms.CharField(widget=forms.PasswordInput(), required=True)
+    email = forms.EmailField(required=True)
+    first_name = forms.CharField(max_length=50, required=False)
+    last_name = forms.CharField(max_length=50, required=False)
+    room_number = forms.CharField(max_length=10, required=True)  # modified this line
+    phone_number = forms.CharField(max_length=15, required=True)  # modified this line
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'password', 'first_name', 'last_name', 'room_number',
+                  'phone_number']  # modified this line
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data['password'])
+        if commit:
+            user.save()
+            student = Student.objects.create(
+                user=user,
+                first_name=self.cleaned_data.get('first_name'),
+                last_name=self.cleaned_data.get('last_name'),
+                room_number=self.cleaned_data['room_number'],
+                phone_number=self.cleaned_data['phone_number'],
+            )
+        return user
+
+class ComplaintForm(forms.ModelForm):
+    class Meta:
+        model = Complaint
+        fields = ['complaint_type', 'description']
+        labels = {
+            'complaint_type': 'Complaint Type',
+            'description': 'Description'
+        }
+        widgets = {
+            'complaint_type': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+        }
+
+class MessageForm(forms.ModelForm):
+    class Meta:
+        model = Message
+        fields = ['content']  # Or whatever fields you have in your Message model
+
+class LoginForm(forms.Form):
+    username = forms.CharField(max_length=100)
+    password = forms.CharField(widget=forms.PasswordInput)
+
+class LeaveForm(forms.ModelForm):
+    class Meta:
+        model = Leave
+        fields = ['from_date', 'to_date', 'reason']
+        widgets = {
+            'from_date': forms.DateInput(attrs={'type': 'date'}),
+            'to_date': forms.DateInput(attrs={'type': 'date'}),
+            'reason': forms.Textarea(attrs={'rows': 4}),
+        }
+
+class AttendanceForm(forms.ModelForm):
+    class Meta:
+        model = Attendance
+        fields = ['student', 'date', 'status', 'check_in', 'check_out', 'comment']
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date'}),
+            'check_in': forms.TimeInput(attrs={'type': 'time'}),
+            'check_out': forms.TimeInput(attrs={'type': 'time'}),
+            'comment': forms.Textarea(attrs={'rows': 2}),
+        }
+
+class BulkAttendanceForm(forms.Form):
+    date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
+    
+    def __init__(self, *args, **kwargs):
+        students = kwargs.pop('students', None)
+        super(BulkAttendanceForm, self).__init__(*args, **kwargs)
+        
+        if students:
+            for student in students:
+                self.fields[f'status_{student.id}'] = forms.ChoiceField(
+                    choices=Attendance.ATTENDANCE_STATUS,
+                    initial='present',
+                    widget=forms.Select(attrs={'class': 'form-select'})
+                )
+                self.fields[f'comment_{student.id}'] = forms.CharField(
+                    required=False,
+                    widget=forms.Textarea(attrs={'rows': 1, 'class': 'form-control'})
+                )
+
+class MealPreferenceForm(forms.ModelForm):
+    class Meta:
+        model = MealPreference
+        fields = ['date', 'breakfast', 'lunch', 'dinner']
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+
+--- TARGET: inspect_leave.py ---
+import os
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'agent.settings')
+import django
+django.setup()
+from django.contrib.auth.models import User
+
+--- TARGET: views.py ---
+import os
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'your_project_name.settings')
+import django
+django.setup()
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.models import User
+from django.contrib import messages
+from django.db import connection
+
+def register(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password1 = request.POST['password1']
+        password2 = request.POST['password2']
+
+        if password1 == password2:
+            if User.objects.filter(username=username).exists():
+                messages.error(request, 'Username already exists')
+            else:
+                user = User.objects.create_user(username=username, password=password1)
+                user.save()
+                messages.success(request, 'Account created successfully')
+                return redirect('login')
+        else:
+            messages.error(request, 'Passwords do not match')
+    
+    return render(request, 'register.html')
+
+def user_login(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('home')  # Redirect to the home page
+        else:
+            messages.error(request, 'Invalid username or password')
+    
+    return render(request, 'login.html')
+
+def home(request):
+    return render(request, 'home.html')
+
+def raw_sql_example(request):
+    # Example of a raw SQL query to create a user
+    with connection.cursor() as cursor:
+        cursor.execute("INSERT INTO auth_user (username, password) VALUES (%s, %s)", ['john', 'password123'])
+
+    # Example of a raw SQL query to retrieve a user
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM auth_user WHERE username = %s", ['john'])
+        row = cursor.fetchone()
+        user_data = {
+            'id': row[0],
+            'username': row[1],
+            'password': row[2],
+            # ...other fields...
+        }
+
+    # Example of a raw SQL query to update a user
+    with connection.cursor() as cursor:
+        cursor.execute("UPDATE auth_user SET email = %s WHERE username = %s", ['john@example.com', 'john'])
+
+    # Example of a raw SQL query to delete a user
+    with connection.cursor() as cursor:
+        cursor.execute("DELETE FROM auth_user WHERE username = %s", ['john'])
+
+    return render(request, 'raw_sql_example.html', {'user_data': user_data})
+
+
+
+
+
+--- TARGET: Home\forms.py ---
+import os
+os.environ['DJANGO_SETTINGS_MODULE'] = 'your_project_name.settings'
+import django
+django.setup()
+
+from django import forms
+from django.contrib.auth.models import User
+from .models import Leave, Complaint, Student, Message, Attendance, MealPreference  # Assuming Leave model exists
+
+class LeaveApplicationForm(forms.ModelForm):
+    class Meta:
+        model = Leave
+        fields = ['from_date', 'to_date', 'reason']
+        widgets = {
+            'from_date': forms.DateInput(attrs={'type': 'date'}),
+            'to_date': forms.DateInput(attrs={'type': 'date'}),
+            'reason': forms.Textarea(attrs={'rows': 4}),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        from_date = cleaned_data.get('from_date')
+        to_date = cleaned_data.get('to_date')
+
+        if from_date and to_date:
+            if to_date < from_date:
+                raise forms.ValidationError("End date cannot be before start date")
+
+        return cleaned_data
+
+class RegistrationForm(forms.ModelForm):
+    username = forms.CharField(max_length=150, required=True)
+    password = forms.CharField(widget=forms.PasswordInput(), required=True)
+    email = forms.EmailField(required=True)
+    first_name = forms.CharField(max_length=50, required=False)
+    last_name = forms.CharField(max_length=50, required=False)
+    room_number = forms.CharField(max_length=10, required=True)
+    phone_number = forms.CharField(max_length=15, required=True)
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'password', 'first_name', 'last_name', 'room_number',
+                  'phone_number']
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data['password'])
+        if commit:
+            user.save()
+            student = Student.objects.create(
+                user=user,
+                first_name=self.cleaned_data.get('first_name'),
+                last_name=self.cleaned_data.get('last_name'),
+                room_number=self.cleaned_data['room_number'],
+                phone_number=self.cleaned_data['phone_number'],
+            )
+        return user
+
+class ComplaintForm(forms.ModelForm):
+    class Meta:
+        model = Complaint
+        fields = ['complaint_type', 'description']
+        labels = {
+            'complaint_type': 'Complaint Type',
+            'description': 'Description'
+        }
+        widgets = {
+            'complaint_type': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+        }
+
+class MessageForm(forms.ModelForm):
+    class Meta:
+        model = Message
+        fields = ['content']
+
+class LoginForm(forms.Form):
+    username = forms.CharField(max_length=100)
+    password = forms.CharField(widget=forms.PasswordInput)
+
+class LeaveForm(forms.ModelForm):
+    class Meta:
+        model = Leave
+        fields = ['from_date', 'to_date', 'reason']
+        widgets = {
+            'from_date': forms.DateInput(attrs={'type': 'date'}),
+            'to_date': forms.DateInput(attrs={'type': 'date'}),
+            'reason': forms.Textarea(attrs={'rows': 4}),
+        }
+
+class AttendanceForm(forms.ModelForm):
+    class Meta:
+        model = Attendance
+        fields = ['student', 'date', 'status', 'check_in', 'check_out', 'comment']
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date'}),
+            'check_in': forms.TimeInput(attrs={'type': 'time'}),
+            'check_out': forms.TimeInput(attrs={'type': 'time'}),
+            'comment': forms.Textarea(attrs={'rows': 2}),
+        }
+
+class BulkAttendanceForm(forms.Form):
+    date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
+
+    def __init__(self, *args, **kwargs):
+        students = kwargs.pop('students', None)
+        super(BulkAttendanceForm, self).__init__(*args, **kwargs)
+
+        if students:
+            for student in students:
+                self.fields[f'status_{student.id}'] = forms.ChoiceField(
+                    choices=Attendance.ATTENDANCE_STATUS,
+                    initial='present',
+                    widget=forms.Select(attrs={'class': 'form-select'})
+                )
+                self.fields[f'comment_{student.id}'] = forms.CharField(
+                    required=False,
+                    widget=forms.Textarea(attrs={'rows': 1, 'class': 'form-control'})
+                )
+
+class MealPreferenceForm(forms.ModelForm):
+    class Meta:
+        model = MealPreference
+        fields = ['date', 'breakfast', 'lunch', 'dinner']
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+--- TARGET: inspect_leave.py ---
+import os
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'agent.settings')
+import django
+django.setup()
+
+from django.contrib.auth.models import User
+
+
+--- TARGET: views.py ---
+import os
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'your_project_name.settings')
+import django
+django.setup()
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+from django.contrib import messages
+from django.db import connection
+from django.contrib.auth.models import User
+
+def register(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password1 = request.POST['password1']
+        password2 = request.POST['password2']
+
+        if password1 == password2:
+            if User.objects.filter(username=username).exists():
+                messages.error(request, 'Username already exists')
+            else:
+                user = User.objects.create_user(username=username, password=password1)
+                user.save()
+                messages.success(request, 'Account created successfully')
+                return redirect('login')
+        else:
+            messages.error(request, 'Passwords do not match')
+    
+    return render(request, 'register.html')
+
+def user_login(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('home')  # Redirect to the home page
+        else:
+            messages.error(request, 'Invalid username or password')
+    
+    return render(request, 'login.html')
+
+def home(request):
+    return render(request, 'home.html')
+
+def raw_sql_example(request):
+    # Example of a raw SQL query to create a user
+    with connection.cursor() as cursor:
+        cursor.execute("INSERT INTO auth_user (username, password) VALUES (%s, %s)", ['john', 'password123'])
+
+    # Example of a raw SQL query to retrieve a user
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM auth_user WHERE username = %s", ['john'])
+        row = cursor.fetchone()
+        user_data = {
+            'id': row[0],
+            'username': row[1],
+            'password': row[2],
+            # ...other fields...
+        }
+
+    # Example of a raw SQL query to update a user
+    with connection.cursor() as cursor:
+        cursor.execute("UPDATE auth_user SET email = %s WHERE username = %s", ['john@example.com', 'john'])
+
+    # Example of a raw SQL query to delete a user
+    with connection.cursor() as cursor:
+        cursor.execute("DELETE FROM auth_user WHERE username = %s", ['john'])
+
+    return render(request, 'raw_sql_example.html', {'user_data': user_data})
+
+
+
+
+
+--- TARGET: Home\forms.py ---
+import os
+os.environ['DJANGO_SETTINGS_MODULE'] = 'your_project_name.settings'
+import django
+django.setup()
+
+from django import forms
+from .models import Leave, Complaint, Student, Message, Attendance, MealPreference
+from django.contrib.auth.models import User
+
+class LeaveApplicationForm(forms.ModelForm):
+    class Meta:
+        model = Leave
+        fields = ['from_date', 'to_date', 'reason']
+        widgets = {
+            'from_date': forms.DateInput(attrs={'type': 'date'}),
+            'to_date': forms.DateInput(attrs={'type': 'date'}),
+            'reason': forms.Textarea(attrs={'rows': 4}),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        from_date = cleaned_data.get('from_date')
+        to_date = cleaned_data.get('to_date')
+
+        if from_date and to_date:
+            if to_date < from_date:
+                raise forms.ValidationError("End date cannot be before start date")
+
+        return cleaned_data
+
+class RegistrationForm(forms.ModelForm):
+    username = forms.CharField(max_length=150, required=True)
+    password = forms.CharField(widget=forms.PasswordInput(), required=True)
+    email = forms.EmailField(required=True)
+    first_name = forms.CharField(max_length=50, required=False)
+    last_name = forms.CharField(max_length=50, required=False)
+    room_number = forms.CharField(max_length=10, required=True)
+    phone_number = forms.CharField(max_length=15, required=True)
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'password', 'first_name', 'last_name', 'room_number',
+                  'phone_number']
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data['password'])
+        if commit:
+            user.save()
+            student = Student.objects.create(
+                user=user,
+                first_name=self.cleaned_data.get('first_name'),
+                last_name=self.cleaned_data.get('last_name'),
+                room_number=self.cleaned_data['room_number'],
+                phone_number=self.cleaned_data['phone_number'],
+            )
+        return user
+
+class ComplaintForm(forms.ModelForm):
+    class Meta:
+        model = Complaint
+        fields = ['complaint_type', 'description']
+        labels = {
+            'complaint_type': 'Complaint Type',
+            'description': 'Description'
+        }
+        widgets = {
+            'complaint_type': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+        }
+
+class MessageForm(forms.ModelForm):
+    class Meta:
+        model = Message
+        fields = ['content']
+
+class LoginForm(forms.Form):
+    username = forms.CharField(max_length=100)
+    password = forms.CharField(widget=forms.PasswordInput)
+
+class LeaveForm(forms.ModelForm):
+    class Meta:
+        model = Leave
+        fields = ['from_date', 'to_date', 'reason']
+        widgets = {
+            'from_date': forms.DateInput(attrs={'type': 'date'}),
+            'to_date': forms.DateInput(attrs={'type': 'date'}),
+            'reason': forms.Textarea(attrs={'rows': 4}),
+        }
+
+class AttendanceForm(forms.ModelForm):
+    class Meta:
+        model = Attendance
+        fields = ['student', 'date', 'status', 'check_in', 'check_out', 'comment']
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date'}),
+            'check_in': forms.TimeInput(attrs={'type': 'time'}),
+            'check_out': forms.TimeInput(attrs={'type': 'time'}),
+            'comment': forms.Textarea(attrs={'rows': 2}),
+        }
+
+class BulkAttendanceForm(forms.Form):
+    date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
+
+    def __init__(self, *args, **kwargs):
+        students = kwargs.pop('students', None)
+        super(BulkAttendanceForm, self).__init__(*args, **kwargs)
+
+        if students:
+            for student in students:
+                self.fields[f'status_{student.id}'] = forms.ChoiceField(
+                    choices=Attendance.ATTENDANCE_STATUS,
+                    initial='present',
+                    widget=forms.Select(attrs={'class': 'form-select'})
+                )
+                self.fields[f'comment_{student.id}'] = forms.CharField(
+                    required=False,
+                    widget=forms.Textarea(attrs={'rows': 1, 'class': 'form-control'})
+                )
+
+class MealPreferenceForm(forms.ModelForm):
+    class Meta:
+        model = MealPreference
+        fields = ['date', 'breakfast', 'lunch', 'dinner']
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+--- TARGET: inspect_leave.py ---
+import os
+os.environ['DJANGO_SETTINGS_MODULE'] = 'agent.settings'
+import django
+django.setup()
+
+from django.contrib.auth.models import User
+
+--- TARGET: views.py ---
+import os
+os.environ['DJANGO_SETTINGS_MODULE'] = 'your_project_name.settings'
+import django
+django.setup()
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+from django.contrib import messages
+from django.db import connection
+from django.contrib.auth.models import User
+
+def register(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password1 = request.POST['password1']
+        password2 = request.POST['password2']
+
+        if password1 == password2:
+            if User.objects.filter(username=username).exists():
+                messages.error(request, 'Username already exists')
+            else:
+                user = User.objects.create_user(username=username, password=password1)
+                user.save()
+                messages.success(request, 'Account created successfully')
+                return redirect('login')
+        else:
+            messages.error(request, 'Passwords do not match')
+
+    return render(request, 'register.html')
+
+def user_login(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('home')
+        else:
+            messages.error(request, 'Invalid username or password')
+
+    return render(request, 'login.html')
+
+def home(request):
+    return render(request, 'home.html')
+
+def raw_sql_example(request):
+    with connection.cursor() as cursor:
+        cursor.execute("INSERT INTO auth_user (username, password) VALUES (%s, %s)", ['john', 'password123'])
+
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM auth_user WHERE username = %s", ['john'])
+        row = cursor.fetchone()
+        user_data = {
+            'id': row[0],
+            'username': row[1],
+            'password': row[2],
+        }
+
+    with connection.cursor() as cursor:
+        cursor.execute("UPDATE auth_user SET email = %s WHERE username = %s", ['john@example.com', 'john'])
+
+    with connection.cursor() as cursor:
+        cursor.execute("DELETE FROM auth_user WHERE username = %s", ['john'])
+
+    return render(request, 'raw_sql_example.html', {'user_data': user_data})
+
+--- TARGET: Home\forms.py ---
+import os
+os.environ['DJANGO_SETTINGS_MODULE'] = 'your_project_name.settings'
+import django
+django.setup()
+
+from django.contrib.auth.models import User
+from django import forms
+from .models import Leave, Complaint, Student, Message, Attendance, MealPreference
+
+class LeaveApplicationForm(forms.ModelForm):
+    class Meta:
+        model = Leave
+        fields = ['from_date', 'to_date', 'reason']
+        widgets = {
+            'from_date': forms.DateInput(attrs={'type': 'date'}),
+            'to_date': forms.DateInput(attrs={'type': 'date'}),
+            'reason': forms.Textarea(attrs={'rows': 4}),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        from_date = cleaned_data.get('from_date')
+        to_date = cleaned_data.get('to_date')
+
+        if from_date and to_date:
+            if to_date < from_date:
+                raise forms.ValidationError("End date cannot be before start date")
+
+        return cleaned_data
+
+class RegistrationForm(forms.ModelForm):
+    username = forms.CharField(max_length=150, required=True)
+    password = forms.CharField(widget=forms.PasswordInput(), required=True)
+    email = forms.EmailField(required=True)
+    first_name = forms.CharField(max_length=50, required=False)
+    last_name = forms.CharField(max_length=50, required=False)
+    room_number = forms.CharField(max_length=10, required=True)
+    phone_number = forms.CharField(max_length=15, required=True)
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'password', 'first_name', 'last_name', 'room_number',
+                  'phone_number']
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data['password'])
+        if commit:
+            user.save()
+            student = Student.objects.create(
+                user=user,
+                first_name=self.cleaned_data.get('first_name'),
+                last_name=self.cleaned_data.get('last_name'),
+                room_number=self.cleaned_data['room_number'],
+                phone_number=self.cleaned_data['phone_number'],
+            )
+        return user
+
+class ComplaintForm(forms.ModelForm):
+    class Meta:
+        model = Complaint
+        fields = ['complaint_type', 'description']
+        labels = {
+            'complaint_type': 'Complaint Type',
+            'description': 'Description'
+        }
+        widgets = {
+            'complaint_type': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+        }
+
+class MessageForm(forms.ModelForm):
+    class Meta:
+        model = Message
+        fields = ['content']
+
+class LoginForm(forms.Form):
+    username = forms.CharField(max_length=100)
+    password = forms.CharField(widget=forms.PasswordInput)
+
+class LeaveForm(forms.ModelForm):
+    class Meta:
+        model = Leave
+        fields = ['from_date', 'to_date', 'reason']
+        widgets = {
+            'from_date': forms.DateInput(attrs={'type': 'date'}),
+            'to_date': forms.DateInput(attrs={'type': 'date'}),
+            'reason': forms.Textarea(attrs={'rows': 4}),
+        }
+
+class AttendanceForm(forms.ModelForm):
+    class Meta:
+        model = Attendance
+        fields = ['student', 'date', 'status', 'check_in', 'check_out', 'comment']
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date'}),
+            'check_in': forms.TimeInput(attrs={'type': 'time'}),
+            'check_out': forms.TimeInput(attrs={'type': 'time'}),
+            'comment': forms.Textarea(attrs={'rows': 2}),
+        }
+
+class BulkAttendanceForm(forms.Form):
+    date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
+
+    def __init__(self, *args, **kwargs):
+        students = kwargs.pop('students', None)
+        super(BulkAttendanceForm, self).__init__(*args, **kwargs)
+
+        if students:
+            for student in students:
+                self.fields[f'status_{student.id}'] = forms.ChoiceField(
+                    choices=Attendance.ATTENDANCE_STATUS,
+                    initial='present',
+                    widget=forms.Select(attrs={'class': 'form-select'})
+                )
+                self.fields[f'comment_{student.id}'] = forms.CharField(
+                    required=False,
+                    widget=forms.Textarea(attrs={'rows': 1, 'class': 'form-control'})
+                )
+
+class MealPreferenceForm(forms.ModelForm):
+    class Meta:
+        model = MealPreference
+        fields = ['date', 'breakfast', 'lunch', 'dinner']
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+--- TARGET: inspect_leave.py ---
+import os
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'agent.settings')
+import django
+django.setup()
+
+from django.contrib.auth.models import User
+
+--- TARGET: views.py ---
+import os
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'your_project_name.settings')
+import django
+django.setup()
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+from django.contrib import messages
+from django.db import connection
+from django.contrib.auth.models import User
+
+def register(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password1 = request.POST['password1']
+        password2 = request.POST['password2']
+
+        if password1 == password2:
+            if User.objects.filter(username=username).exists():
+                messages.error(request, 'Username already exists')
+            else:
+                user = User.objects.create_user(username=username, password=password1)
+                user.save()
+                messages.success(request, 'Account created successfully')
+                return redirect('login')
+        else:
+            messages.error(request, 'Passwords do not match')
+
+    return render(request, 'register.html')
+
+def user_login(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('home')
+        else:
+            messages.error(request, 'Invalid username or password')
+
+    return render(request, 'login.html')
+
+def home(request):
+    return render(request, 'home.html')
+
+def raw_sql_example(request):
+    with connection.cursor() as cursor:
+        cursor.execute("INSERT INTO auth_user (username, password) VALUES (%s, %s)", ['john', 'password123'])
+
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM auth_user WHERE username = %s", ['john'])
+        row = cursor.fetchone()
+        user_data = {
+            'id': row[0],
+            'username': row[1],
+            'password': row[2],
+        }
+
+    with connection.cursor() as cursor:
+        cursor.execute("UPDATE auth_user SET email = %s WHERE username = %s", ['john@example.com', 'john'])
+
+    with connection.cursor() as cursor:
+        cursor.execute("DELETE FROM auth_user WHERE username = %s", ['john'])
+
+    return render(request, 'raw_sql_example.html', {'user_data': user_data})
+
+--- TARGET: Home\forms.py ---
+import os
+os.environ['DJANGO_SETTINGS_MODULE'] = 'agent.settings'
+import django
+django.setup()
+
+from django.contrib.auth.models import User
+from django import forms
+from .models import Leave, Complaint, Student, Message, Attendance, MealPreference
+
+class LeaveApplicationForm(forms.ModelForm):
+    class Meta:
+        model = Leave
+        fields = ['from_date', 'to_date', 'reason']
+        widgets = {
+            'from_date': forms.DateInput(attrs={'type': 'date'}),
+            'to_date': forms.DateInput(attrs={'type': 'date'}),
+            'reason': forms.Textarea(attrs={'rows': 4}),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        from_date = cleaned_data.get('from_date')
+        to_date = cleaned_data.get('to_date')
+
+        if from_date and to_date:
+            if to_date < from_date:
+                raise forms.ValidationError("End date cannot be before start date")
+
+        return cleaned_data
+
+class RegistrationForm(forms.ModelForm):
+    username = forms.CharField(max_length=150, required=True)
+    password = forms.CharField(widget=forms.PasswordInput(), required=True)
+    email = forms.EmailField(required=True)
+    first_name = forms.CharField(max_length=50, required=False)
+    last_name = forms.CharField(max_length=50, required=False)
+    room_number = forms.CharField(max_length=10, required=True)
+    phone_number = forms.CharField(max_length=15, required=True)
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'password', 'first_name', 'last_name', 'room_number',
+                  'phone_number']
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data['password'])
+        if commit:
+            user.save()
+            student = Student.objects.create(
+                user=user,
+                first_name=self.cleaned_data.get('first_name'),
+                last_name=self.cleaned_data.get('last_name'),
+                room_number=self.cleaned_data['room_number'],
+                phone_number=self.cleaned_data['phone_number'],
+            )
+        return user
+
+class ComplaintForm(forms.ModelForm):
+    class Meta:
+        model = Complaint
+        fields = ['complaint_type', 'description']
+        labels = {
+            'complaint_type': 'Complaint Type',
+            'description': 'Description'
+        }
+        widgets = {
+            'complaint_type': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+        }
+
+class MessageForm(forms.ModelForm):
+    class Meta:
+        model = Message
+        fields = ['content']
+
+class LoginForm(forms.Form):
+    username = forms.CharField(max_length=100)
+    password = forms.CharField(widget=forms.PasswordInput)
+
+class LeaveForm(forms.ModelForm):
+    class Meta:
+        model = Leave
+        fields = ['from_date', 'to_date', 'reason']
+        widgets = {
+            'from_date': forms.DateInput(attrs={'type': 'date'}),
+            'to_date': forms.DateInput(attrs={'type': 'date'}),
+            'reason': forms.Textarea(attrs={'rows': 4}),
+        }
+
+class AttendanceForm(forms.ModelForm):
+    class Meta:
+        model = Attendance
+        fields = ['student', 'date', 'status', 'check_in', 'check_out', 'comment']
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date'}),
+            'check_in': forms.TimeInput(attrs={'type': 'time'}),
+            'check_out': forms.TimeInput(attrs={'type': 'time'}),
+            'comment': forms.Textarea(attrs={'rows': 2}),
+        }
+
+class BulkAttendanceForm(forms.Form):
+    date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
+
+    def __init__(self, *args, **kwargs):
+        students = kwargs.pop('students', None)
+        super(BulkAttendanceForm, self).__init__(*args, **kwargs)
+
+        if students:
+            for student in students:
+                self.fields[f'status_{student.id}'] = forms.ChoiceField(
+                    choices=Attendance.ATTENDANCE_STATUS,
+                    initial='present',
+                    widget=forms.Select(attrs={'class': 'form-select'})
+                )
+                self.fields[f'comment_{student.id}'] = forms.CharField(
+                    required=False,
+                    widget=forms.Textarea(attrs={'rows': 1, 'class': 'form-control'})
+                )
+
+class MealPreferenceForm(forms.ModelForm):
+    class Meta:
+        model = MealPreference
+        fields = ['date', 'breakfast', 'lunch', 'dinner']
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a*b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a*b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a*b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a*b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a*b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a+b
+
+
+--- TARGET: /tmp/30468d51-42ed-4697-b122-ac0e0b0c1141/repo/calculator.py ---
+def multiply(a, b):
+  return a * b
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a+b
+
+
+--- TARGET: /tmp/5b612b0d-551a-43fa-8cc7-d52a23bc3f10/repo/calculator.py ---
+def multiply(a, b):
+  return a * b
+
+--- TARGET: /tmp/fd2a21a0-9b5e-4491-97af-530f21058e29/repo/calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: /tmp/fd2a21a0-9b5e-4491-97af-530f21058e29/repo/calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: /tmp/9fa136db-00c4-4ffc-867c-9e6bab9ec0eb/repo/calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: /tmp/9fa136db-00c4-4ffc-867c-9e6bab9ec0eb/repo/calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: /tmp/5cb78565-915b-434d-8a63-ef41b1ee862b/repo/calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: /tmp/5cb78565-915b-434d-8a63-ef41b1ee862b/repo/calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: /tmp/baa84cb3-47c6-4888-af82-c18e48837295/repo/calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: /tmp/db31329a-9db3-45c0-8cb1-32203a9e2522/repo/calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: /tmp/20d9d8f1-9b36-4c85-b90e-211ebae327c3/repo/calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: /tmp/0ee6d0b4-8928-4f4f-8e4d-940697af32d1/repo/calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: /tmp/f81c7c02-50a4-4a48-9e15-412985545e97/repo/calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: /tmp/f77c327a-aed6-4a97-b929-40aec9c0e990/repo/calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: /tmp/b28d787a-60ec-4d1e-9908-620d767a7410/repo/calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a+b
+
+
+--- TARGET: /tmp/43dba07f-04dd-4ec2-b645-0690adf280dc/repo/calculator.py ---
+def multiply(a,b)
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a+b
+
+
+--- TARGET: /tmp/43dba07f-04dd-4ec2-b645-0690adf280dc/repo/calculator.py ---
+def multiply(a,b):
+  return a*b
+
+
+--- TARGET: /tmp/f309caa3-39bf-4183-8994-d2c757b440d4/repo/calculator.py ---
+def multiply(a,b):
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a, b):
+    return a * b
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a+b
+
+
+--- TARGET: /tmp/5e841820-3040-45be-9233-444d4f6ca54d/repo/calculator.py ---
+def multiply(a, b):
+    return a * b
+
+--- TARGET: calculator.py ---
+def multiply(a,b):
+  return a+b
+
+
+--- TARGET: /tmp/d72a9d4b-7e9f-4f0e-92e3-a2db3c5e771b/repo/calculator.py ---
+def multiply(a, b):
+  return a * b
+
+--- TARGET: /tmp/991701a9-e2a0-4f78-b5a4-03c5c3b74b1a/repo/calculator.py ---
+def multiply(a,b):
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a, b):
+  return a * b
+
+--- TARGET: /tmp/03f8ea38-bd36-4271-85f6-5090ce5594fc/repo/calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: /tmp/test_run_123/repo/calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: /tmp/test_run_123/repo/calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: /tmp/55d985d8-41da-4609-86e4-a8abcfe0483e/repo/calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a,b):;
+  return a+b
+
+
+--- TARGET: /tmp/441dfce4-0055-4e4e-82c1-198dba7186f3/repo/calculator.py ---
+def multiply(a,b):
+  return a+b
+
+
+--- TARGET: calculator.py ---
+def multiply(a, b):
+    return a * b

@@ -1,66 +1,7 @@
-# Python
-__pycache__/
-*.py[cod]
-*.pyo
-*.pyd
-.Python
-*.egg
-*.egg-info/
-dist/
-build/
-eggs/
-parts/
-var/
-sdist/
-develop-eggs/
-.installed.cfg
-lib/
-lib64/
-
-# Virtual Environments
-.venv
-venv/
-ENV/
-env/
-
-# Environment variables — NEVER commit secrets
-.env
-.env.local
-.env*.local
-*.env
-
-# Logs
-*.log
-logs/
-
-# Test artifacts
-.pytest_cache/
-.coverage
-htmlcov/
-tmp/
-/tmp/
-
-# Node
 node_modules/
-.npm
-
-# Vite / React build
-frontend/dist/
-frontend/.vite/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# IDE
+venv/
+__pycache__/
+*.pyc
+.env
+.pytest_cache/
 .vscode/
-.idea/
-*.swp
-*.swo
-
-# Debug files (agent diagnostics)
-agent/llm_debug_output.txt
-agent/llm_debug_prompt.txt
-agent/llm_debug_raw.txt
-agent/test_git.py
-agent/read_db.py
