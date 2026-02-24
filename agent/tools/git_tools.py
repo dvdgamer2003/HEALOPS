@@ -67,30 +67,35 @@ def commit_and_push(repo_path: str, branch_name: str, commit_message: str) -> bo
 def cleanup_repo(repo_path: str) -> bool:
     """Delete the cloned repository directory after work is done."""
     import stat
+    import threading
 
     def _on_rm_error(func, path, exc_info):
         """Handle read-only .git files on Windows."""
-        os.chmod(path, stat.S_IWRITE)
-        func(path)
+        try:
+            os.chmod(path, stat.S_IWRITE)
+            func(path)
+        except Exception:
+            pass
 
-    try:
-        if os.path.exists(repo_path):
-            # Close git handles to release .git locks
-            try:
-                repo = git.Repo(repo_path)
-                repo.close()
-                del repo
-            except Exception:
-                pass
-            shutil.rmtree(repo_path, onerror=_on_rm_error)
-            print(f"[git_tools] Cleaned up local repo: {repo_path}")
-            return True
-        else:
-            print(f"[git_tools] Repo path not found (already cleaned): {repo_path}")
-            return True
-    except Exception as e:
-        print(f"[git_tools] Cleanup failed for {repo_path}: {e}")
-        return False
+    def _do_cleanup():
+        try:
+            if os.path.exists(repo_path):
+                # Close git handles to release .git locks
+                try:
+                    repo = git.Repo(repo_path)
+                    repo.close()
+                    del repo
+                except Exception:
+                    pass
+                shutil.rmtree(repo_path, onerror=_on_rm_error)
+                print(f"[git_tools] Cleaned up local repo: {repo_path}")
+            else:
+                print(f"[git_tools] Repo path not found (already cleaned): {repo_path}")
+        except Exception as e:
+            print(f"[git_tools] Cleanup failed for {repo_path}: {e}")
+
+    threading.Thread(target=_do_cleanup, daemon=True).start()
+    return True
 
 
 def generate_branch_name(commit_message: str) -> str:

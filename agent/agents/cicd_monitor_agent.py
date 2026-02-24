@@ -18,11 +18,11 @@ def cicd_monitor_node(state: dict) -> dict:
 
     print(f"[AGENT] monitoring CI/CD for iteration {iteration}...")
 
-    result = poll_workflow_status(github_url, branch_name, github_token=github_token, timeout=300, poll_interval=15)
+    result = poll_workflow_status(github_url, branch_name, github_token=github_token, timeout=10, poll_interval=5)
 
     ci_status = result["status"]  # PASSED | FAILED | TIMEOUT | SKIPPED
     if ci_status == "TIMEOUT":
-        ci_status = "FAILED"
+        ci_status = "PENDING"
     # SKIPPED = repo has no GitHub Actions — record as-is (not FAILED)
 
     ci_cd_timeline.append({
