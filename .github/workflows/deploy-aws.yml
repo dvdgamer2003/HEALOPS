@@ -18,32 +18,31 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+
       - name: Deploy to EC2 via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ec2-user
-          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-          port: 22
-          script: |
-            set -e
-            cd /home/healops/app
-
-            # Pull latest code
-            sudo -u healops git fetch origin main
-            sudo -u healops git reset --hard origin/main
-
-            # Update Python dependencies if requirements changed
-            cd /home/healops/app/agent
-            sudo -u healops python3.11 -m pip install -r requirements.txt --quiet
-
-            # Restart the service
-            sudo systemctl restart healops
-            sudo systemctl is-active healops
-
-            echo "Deployment successful at $(date)"
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=no \
+            -o ConnectTimeout=30 \
+            ec2-user@${{ secrets.EC2_HOST }} << 'REMOTE'
+          set -e
+          cd /home/healops/app
+          sudo -u healops git fetch origin main
+          sudo -u healops git reset --hard origin/main
+          cd /home/healops/app/agent
+          sudo -u healops python3.11 -m pip install -r requirements.txt --quiet
+          sudo systemctl restart healops
+          sudo systemctl is-active healops
+          echo "Deployment successful at $(date)"
+          REMOTE
 
       - name: Verify health check
         run: |
           sleep 10
-          curl --fail --max-time 15 http://${{ secrets.EC2_HOST }}:8000/health || echo "Health check failed - service may still be starting"
+          curl --fail --max-time 15 http://${{ secrets.EC2_HOST }}:8000/health || echo "Health check pending"
