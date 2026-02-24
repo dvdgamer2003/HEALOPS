@@ -1,9 +1,9 @@
 {
   "repository": "https://github.com/YASH-DHADGE/DEVDEMO",
-  "branch": "healops/test1-282f14",
+  "branch": "healops/test-commit-cb85d9",
   "iterations": 2,
-  "failures_detected": 0,
-  "fixes_applied": 2,
-  "final_status": "PASSED",
-  "time_taken": "98s"
+  "failures_detected": 2,
+  "fixes_applied": 0,
+  "final_status": "FAILED",
+  "time_taken": "1771934757s"
 }

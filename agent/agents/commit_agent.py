@@ -50,16 +50,16 @@ def commit_node(state: dict) -> dict:
 
     except Exception as e:
         error_str = str(e)
-        print(f"[AGENT] push failed: {e}")
+        print(f"[AGENT] push failed: {error_str}")
 
         logs = list(state.get("logs", []))
-        logs.append("Push skipped — local commit saved")
+        logs.append(f"✗ Push failed: {error_str.splitlines()[0][:100]}")
 
         return {
             **state,
             "commit_count": commit_count,
             "push_succeeded": False,
-            "current_step": "Fix committed locally (push skipped)",
-            "error_message": "",
+            "current_step": "Push failed (auth/network error)",
+            "error_message": error_str,
             "logs": logs,
         }

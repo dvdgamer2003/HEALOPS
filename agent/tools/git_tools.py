@@ -58,7 +58,7 @@ def commit_and_push(repo_path: str, branch_name: str, commit_message: str) -> bo
             return True
         except Exception as e:
             print(f"[git_tools] Push rejected by upstream: {e}")
-            return False
+            raise RuntimeError(f"Push rejected: {e}")
     else:
         print("[git_tools] No changes to commit")
         return False
